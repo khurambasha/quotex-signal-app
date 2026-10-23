@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quotex Signal App</title>
+<style>
+body{margin:0;background:#101827;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px}
+.card{max-width:380px;margin:35px auto;background:#1e293b;padding:24px;border-radius:18px}
+h1{color:#38e8a5;font-size:27px}
+p{color:#cbd5e1}
+button{width:100%;padding:15px;margin:8px 0;border:0;border-radius:10px;font-size:17px;font-weight:bold}
+.buy{background:#16a34a;color:white}
+.sell{background:#dc2626;color:white}
+.wait{background:#64748b;color:white}
+#result{font-size:24px;font-weight:bold;margin:22px}
+small{color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>Quotex Signal App</h1>
+<p>Demo Signal Panel</p>
+<hr>
+<div id="result">WAIT</div>
+<button class="buy" onclick="signal('BUY')">BUY</button>
+<button class="sell" onclick="signal('SELL')">SELL</button>
+<button class="wait" onclick="signal('WAIT')">WAIT</button>
+<p id="note">Demo mode — no live market data</p>
+<small>Signals are not guaranteed to be profitable.</small>
+</div>
+<script>
+function signal(value){
+ document.getElementById('result').textContent=value;
+ document.getElementById('note').textContent=
+ 'Manual demo selection: '+value;
+}
+</script>
+</body>
+</html>
