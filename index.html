@@ -1,41 +1,60 @@
-
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ur">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quotex Signal App</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quotex Signal App — Demo</title>
 <style>
-body{margin:0;background:#101827;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px}
-.card{max-width:380px;margin:35px auto;background:#1e293b;padding:24px;border-radius:18px}
-h1{color:#38e8a5;font-size:27px}
-p{color:#cbd5e1}
-button{width:100%;padding:15px;margin:8px 0;border:0;border-radius:10px;font-size:17px;font-weight:bold}
-.buy{background:#16a34a;color:white}
-.sell{background:#dc2626;color:white}
-.wait{background:#64748b;color:white}
-#result{font-size:24px;font-weight:bold;margin:22px}
-small{color:#94a3b8}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#172338;--muted:#9eafc5;--green:#20c77a;--red:#f05252;--gold:#f4b942;--line:#263750}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f5f7fb;font-family:Arial,sans-serif;padding:16px}
+.wrap{max-width:760px;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:25px;margin:8px 0;color:#55e0b0}.sub{color:var(--muted);font-size:14px;line-height:1.5}
+.pill{border:1px solid #35516b;border-radius:99px;padding:7px 11px;font-size:12px;color:#ffe0a0;background:#302b20}
+.card{background:var(--panel);border:1px solid #25364e;border-radius:18px;padding:16px;margin-top:14px}
+h2{font-size:17px;margin:0 0 12px}.row{display:flex;gap:10px;flex-wrap:wrap}.metric{flex:1;min-width:90px;background:#101b2d;padding:12px;border-radius:12px}.label{font-size:12px;color:var(--muted)}.value{font-size:20px;font-weight:700;margin-top:5px}
+.signal{font-size:28px;font-weight:800;text-align:center;padding:16px;border-radius:12px;background:#24334a;margin:8px 0}.signal.buy{color:var(--green)}.signal.sell{color:var(--red)}.signal.wait{color:var(--gold)}
+canvas{width:100%;height:260px;display:block;background:#0e192a;border-radius:12px}
+button,select{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700}button{background:#2675e8;color:white;cursor:pointer;flex:1;min-width:130px}button.secondary{background:#33445d}select{background:#101b2d;color:#fff;border:1px solid #35516b;flex:1;min-width:120px}
+.note{font-size:12px;line-height:1.55;color:var(--muted)}.result{font-size:14px;line-height:1.7}.good{color:var(--green)}.bad{color:var(--red)}.footer{padding:20px 4px;text-align:center;color:#8294aa;font-size:12px}
 </style>
 </head>
-<body>
-<div class="card">
-<h1>Quotex Signal App</h1>
-<p>Demo Signal Panel</p>
-<hr>
-<div id="result">WAIT</div>
-<button class="buy" onclick="signal('BUY')">BUY</button>
-<button class="sell" onclick="signal('SELL')">SELL</button>
-<button class="wait" onclick="signal('WAIT')">WAIT</button>
-<p id="note">Demo mode — no live market data</p>
-<small>Signals are not guaranteed to be profitable.</small>
+<body><main class="wrap">
+<div class="top"><div><h1>Quotex Signal App</h1><div class="sub">EUR/USD · EMA 9/21 · RSI 14</div></div><span class="pill">DEMO DATA ONLY</span></div>
+<section class="card">
+<h2>سگنل پینل</h2>
+<div id="signal" class="signal wait">WAIT</div>
+<div id="reason" class="sub">ڈیمو ڈیٹا لوڈ کریں تاکہ اشارے کا حساب ہو سکے۔</div>
+<div class="row" style="margin-top:14px">
+<div class="metric"><div class="label">Demo Price</div><div class="value" id="price">—</div></div>
+<div class="metric"><div class="label">EMA 9</div><div class="value" id="ema9">—</div></div>
+<div class="metric"><div class="label">EMA 21</div><div class="value" id="ema21">—</div></div>
+<div class="metric"><div class="label">RSI 14</div><div class="value" id="rsi">—</div></div>
 </div>
+</section>
+<section class="card">
+<div class="top"><h2>EUR/USD چارٹ</h2><span class="sub">فرضی نمونہ · لائیو قیمت نہیں</span></div>
+<canvas id="chart" width="720" height="280" aria-label="Demo price chart"></canvas>
+<div class="row" style="margin-top:12px"><button id="load">نیا ڈیمو ڈیٹا بنائیں</button><button id="backtest" class="secondary">ڈیمو بیک ٹیسٹ</button></div>
+</section>
+<section class="card">
+<h2>بیک ٹیسٹ کا نتیجہ</h2><div id="backtestResult" class="result">ابھی بیک ٹیسٹ نہیں چلایا گیا۔ پہلے ڈیمو ڈیٹا بنائیں، پھر بیک ٹیسٹ دبائیں۔</div>
+</section>
+<section class="card">
+<h2>سگنل کیسے بنتا ہے؟</h2>
+<div class="result">• BUY: EMA 9، EMA 21 سے اوپر ہو اور RSI تقریباً 50 سے 70 کے درمیان ہو۔<br>• SELL: EMA 9، EMA 21 سے نیچے ہو اور RSI تقریباً 30 سے 50 کے درمیان ہو۔<br>• WAIT: باقی صورتوں میں۔</div>
+<p class="note">اہم: یہ سیکھنے کے لیے ایک سادہ ڈیمو ماڈل ہے۔ اس میں حقیقی مارکیٹ کی قیمتیں نہیں آتیں، اور یہ منافع یا درست سگنل کی ضمانت نہیں دیتا۔ بیک ٹیسٹ صرف اس صفحے کے بنائے ہوئے فرضی ڈیٹا پر چلتا ہے۔ حقیقی ڈیٹا جوڑنے کے لیے معتبر data provider درکار ہوگا۔</p>
+</section>
+<div class="footer">Educational demo only · کوئی خودکار ٹریڈ یا حقیقی رقم استعمال نہیں ہوتی۔</div>
+</main>
 <script>
-function signal(value){
- document.getElementById('result').textContent=value;
- document.getElementById('note').textContent=
- 'Manual demo selection: '+value;
-}
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id);
+let prices=[];
+function ema(vals,period){let k=2/(period+1),out=[];let prev=vals[0];out.push(prev);for(let i=1;i<vals.length;i++){prev=vals[i]*k+prev*(1-k);out.push(prev)}return out}
+function rsi(vals,period=14){if(vals.length<=period)return 50;let gains=0,losses=0;for(let i=vals.length-period;i<vals.length;i++){let d=vals[i]-vals[i-1];if(d>0)gains+=d;else losses-=d}if(losses===0)return 100;return 100-(100/(1+gains/losses))}
+function signalAt(i){let a=ema(prices.slice(0,i+1),9),b=ema(prices.slice(0,i+1),21),r=rsi(prices.slice(0,i+1));if(i<21)return {s:'WAIT',why:'مزید ڈیٹا درکار ہے',a:a.at(-1),b:b.at(-1),r};if(a.at(-1)>b.at(-1)&&r>=50&&r<=70)return{s:'BUY',why:'EMA 9 اوپر ہے اور RSI 50–70 میں ہے (ڈیمو اصول)',a:a.at(-1),b:b.at(-1),r};if(a.at(-1)<b.at(-1)&&r>=30&&r<50)return{s:'SELL',why:'EMA 9 نیچے ہے اور RSI 30–50 میں ہے (ڈیمو اصول)',a:a.at(-1),b:b.at(-1),r};return{s:'WAIT',why:'EMA/RSI کی شرط پوری نہیں ہوئی',a:a.at(-1),b:b.at(-1),r}}
+function makeData(){prices=[];let p=1.085;for(let i=0;i<100;i++){p+=(Math.random()-.485)*.0015;prices.push(+p.toFixed(5))}render()}
+function render(){let q=signalAt(prices.length-1);$('signal').textContent=q.s;$('signal').className='signal '+q.s.toLowerCase();$('reason').textContent=q.why;$('price').textContent=prices.at(-1)?.toFixed(5)??'—';$('ema9').textContent=q.a?.toFixed(5)??'—';$('ema21').textContent=q.b?.toFixed(5)??'—';$('rsi').textContent=q.r?.toFixed(1)??'—';drawChart()}
+function drawChart(){let c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.strokeStyle='#24354c';ctx.lineWidth=1;for(let j=1;j<5;j++){let y=j*h/5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}if(!prices.length)return;let min=Math.min(...prices),max=Math.max(...prices),pad=20,span=max-min||.001;let y=v=>h-pad-(v-min)/span*(h-pad*2),x=i=>pad+i*(w-2*pad)/(prices.length-1);ctx.strokeStyle='#20c77a';ctx.lineWidth=2.5;ctx.beginPath();prices.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.stroke();let e=ema(prices,9);ctx.strokeStyle='#f4b942';ctx.lineWidth=2;ctx.beginPath();e.forEach((v,i)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v)));ctx.stroke();ctx.fillStyle='#a7b8ce';ctx.font='12px Arial';ctx.fillText('Green: demo price',12,18);ctx.fillStyle='#f4b942';ctx.fillText('Yellow: EMA 9',12,34)}
+function backtest(){if(prices.length<30){$('backtestResult').textContent='پہلے نیا ڈیمو ڈیٹا بنائیں۔';return}let wins=0,losses=0,trades=0;for(let i=22;i<prices.length-1;i++){let q=signalAt(i);if(q.s==='WAIT')continue;trades++;let move=prices[i+1]-prices[i];if((q.s==='BUY'&&move>0)||(q.s==='SELL'&&move<0))wins++;else losses++}let rate=trades?(wins/trades*100).toFixed(1):'0.0';$('backtestResult').innerHTML=`ڈیمو سگنلز: <b>${trades}</b><br>اگلی فرضی قیمت کے مقابلے میں درست سمت: <b class="good">${wins}</b><br>غلط سمت: <b class="bad">${losses}</b><br>درست سمت کا تناسب: <b>${rate}%</b><br><span class="note">یہ انتہائی سادہ، ایک قدم آگے کا فرضی ٹیسٹ ہے؛ یہ حقیقی مارکیٹ کی کارکردگی نہیں بتاتا اور فیس/اسپریڈ شامل نہیں۔</span>`}
+$('load').addEventListener('click',makeData);$('backtest').addEventListener('click',backtest);makeData();
+</script></body></html>
