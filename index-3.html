@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quotex Signal App — Demo</title>
+<style>
+:root{--bg:#0b1220;--panel:#17243b;--panel2:#101b2d;--text:#edf3ff;--muted:#9eacc2;--blue:#2878ed;--green:#35c98b;--red:#ff647c;--yellow:#ffc34d;--line:#27374f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Nastaliq Urdu",Arial,sans-serif;padding:18px 14px 30px}
+.wrap{max-width:850px;margin:auto}.top{padding:12px 4px 18px}.eyebrow{color:#8eafff;font-size:13px}.top h1{margin:7px 0;font-size:27px}.sub{color:var(--muted);font-size:14px;line-height:1.7}
+.notice{background:#30281a;border:1px solid #67512a;color:#ffe2a0;border-radius:14px;padding:12px 14px;margin:10px 0 16px;line-height:1.7;font-size:14px}
+.card{background:var(--panel);border:1px solid #263651;border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 8px 24px #0002}.card h2{font-size:20px;margin:0 0 14px}.signal{border-radius:16px;text-align:center;padding:20px 8px;font-size:34px;font-weight:800;background:#24334b;color:var(--yellow);direction:ltr}.signal.buy{color:var(--green)}.signal.sell{color:var(--red)}.why{color:var(--muted);margin-top:12px;line-height:1.7}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:16px}.stat{background:var(--panel2);border-radius:15px;padding:12px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:19px;direction:ltr;text-align:right;margin-top:5px;overflow-wrap:anywhere}.stat.full{grid-column:1/-1}
+canvas{display:block;width:100%;height:260px;background:#0d1829;border-radius:16px;margin-top:12px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.btn{border:0;border-radius:13px;padding:14px 10px;font-size:15px;font-weight:700;background:#30435e;color:white;cursor:pointer}.btn.primary{background:var(--blue)}.btn:active{transform:scale(.99)}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.metric{background:var(--panel2);border-radius:14px;padding:13px}.metric span{display:block;color:var(--muted);font-size:13px}.metric strong{font-size:22px;display:block;margin-top:4px;direction:ltr;text-align:right}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:10px 5px;text-align:right;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}.buytxt{color:var(--green)}.selltxt{color:var(--red)}.waittxt{color:var(--yellow)}
+.small{color:var(--muted);font-size:12px;line-height:1.7}.ltr{direction:ltr;unicode-bidi:embed}
+@media(max-width:430px){body{padding:10px}.card{padding:14px}.stats{gap:7px}.stat{padding:9px}.stat strong{font-size:16px}.btns{grid-template-columns:1fr}.top h1{font-size:23px}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="top">
+<div class="eyebrow">QUOTEX SIGNAL APP · TEST VERSION</div>
+<h1>EUR/USD سگنل ڈیش بورڈ</h1>
+<div class="sub">EMA 9/21 · RSI 14 · چارٹ اور ڈیمو بیک ٹیسٹ</div>
+</header>
+<div class="notice"><b>صرف ڈیمو:</b> یہ ایپ فرضی قیمتیں بناتی ہے، لائیو مارکیٹ ڈیٹا نہیں لیتی۔ نتائج منافع کی ضمانت نہیں۔ حقیقی رقم سے ٹریڈ نہ کریں۔</div>
+<section class="card">
+<h2>سگنل پینل</h2><div id="signal" class="signal">WAIT</div><div id="why" class="why">سگنل کی وضاحت یہاں آئے گی۔</div>
+<div class="stats">
+<div class="stat"><span>Demo Price</span><strong id="price">—</strong></div>
+<div class="stat"><span>EMA 9</span><strong id="ema9">—</strong></div>
+<div class="stat"><span>EMA 21</span><strong id="ema21">—</strong></div>
+<div class="stat full"><span>RSI 14</span><strong id="rsi">—</strong></div>
+</div>
+</section>
+<section class="card"><h2>EUR/USD چارٹ</h2><div class="sub">سبز: فرضی قیمت · پیلا: EMA 9</div><canvas id="chart" width="800" height="340"></canvas>
+<div class="btns"><button class="btn primary" id="newData">نیا ڈیمو ڈیٹا بنائیں</button><button class="btn" id="runTest">ڈیمو بیک ٹیسٹ چلائیں</button></div>
+</section>
+<section class="card"><h2>بیک ٹیسٹ کے نتائج</h2><div class="metrics">
+<div class="metric"><span>ٹیسٹ سگنلز</span><strong id="count">—</strong></div>
+<div class="metric"><span>درست سمت (%)</span><strong id="winrate">—</strong></div>
+<div class="metric"><span>درست اندازے</span><strong id="wins">—</strong></div>
+<div class="metric"><span>غلط اندازے</span><strong id="losses">—</strong></div>
+</div><p class="small">یہ صرف بنائی گئی فرضی قیمتوں پر سادہ تجربہ ہے۔ یہ حقیقی مارکیٹ کی کامیابی یا مستقبل کی کارکردگی نہیں بتاتا۔</p></section>
+<section class="card"><h2>حالیہ سگنلز</h2><div style="overflow-x:auto"><table><thead><tr><th>نمبر</th><th>سگنل</th><th>EMA 9</th><th>EMA 21</th><th>RSI</th></tr></thead><tbody id="history"><tr><td colspan="5">ڈیٹا تیار ہو رہا ہے…</td></tr></tbody></table></div></section>
+<div class="small">نوٹ: EMA/RSI تعلیمی اشارے ہیں، یقینی پیش گوئی نہیں۔ ایپ اس وقت کسی بروکر سے منسلک نہیں۔</div>
+</main>
+<script>
+let prices=[], ema9s=[], ema21s=[], rsiVals=[], signalHistory=[];
+function randData(){let p=1.085;prices=[];for(let i=0;i<90;i++){p+=((Math.random()-.48)*.0018);p=Math.max(1.075,Math.min(1.095,p));prices.push(p)}calc();render()}
+function ema(arr,period){let out=[],k=2/(period+1),v=arr[0];for(let x of arr){v=x*k+v*(1-k);out.push(v)}return out}
+function calc(){ema9s=ema(prices,9);ema21s=ema(prices,21);rsiVals=prices.map((_,i)=>{if(i<14)return 50;let up=0,dn=0;for(let j=i-13;j<=i;j++){let d=prices[j]-prices[j-1];if(d>0)up+=d;else dn-=d}if(dn===0)return 100;return 100-100/(1+(up/14)/(dn/14))})}
+function signalAt(i){if(i<21)return'WAIT';let r=rsiVals[i];if(ema9s[i]>ema21s[i]&&r>=50&&r<70)return'BUY';if(ema9s[i]<ema21s[i]&&r<=50&&r>30)return'SELL';return'WAIT'}
+function fmt(v){return Number(v).toFixed(5)}
+function render(){let i=prices.length-1,s=signalAt(i),el=document.getElementById('signal');el.textContent=s;el.className='signal '+(s==='BUY'?'buy':s==='SELL'?'sell':'');document.getElementById('price').textContent=fmt(prices[i]);document.getElementById('ema9').textContent=fmt(ema9s[i]);document.getElementById('ema21').textContent=fmt(ema21s[i]);document.getElementById('rsi').textContent=rsiVals[i].toFixed(1);
+document.getElementById('why').textContent=s==='BUY'?'EMA 9، EMA 21 سے اوپر ہے اور RSI کی ڈیمو شرط پوری ہے۔':s==='SELL'?'EMA 9، EMA 21 سے نیچے ہے اور RSI کی ڈیمو شرط پوری ہے۔':'EMA/RSI کی مقررہ ڈیمو شرط پوری نہیں ہوئی؛ انتظار کریں۔';
+draw();signalHistory=[];for(let j=i;j>=Math.max(21,i-7);j--)signalHistory.push({s:signalAt(j),e9:ema9s[j],e21:ema21s[j],r:rsiVals[j]});document.getElementById('history').innerHTML=signalHistory.map((x,n)=>`<tr><td>${n+1}</td><td class="${x.s.toLowerCase()}txt">${x.s}</td><td class="ltr">${fmt(x.e9)}</td><td class="ltr">${fmt(x.e21)}</td><td class="ltr">${x.r.toFixed(1)}</td></tr>`).join('')}
+function draw(){let c=document.getElementById('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);let min=Math.min(...prices,...ema9s),max=Math.max(...prices,...ema9s),pad=22;for(let g=1;g<5;g++){let y=g*h/5;ctx.strokeStyle='#223149';ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}function line(arr,color){ctx.beginPath();arr.forEach((v,i)=>{let x=i*w/(arr.length-1),y=h-pad-(v-min)/(max-min||1)*(h-pad*2);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.strokeStyle=color;ctx.lineWidth=3;ctx.stroke()}line(prices,'#35c98b');line(ema9s,'#ffc34d')}
+function backtest(){let n=0,w=0,l=0;for(let i=21;i<prices.length-1;i++){let s=signalAt(i);if(s==='WAIT')continue;n++;let next=prices[i+1]-prices[i],correct=(s==='BUY'&&next>0)||(s==='SELL'&&next<0);if(correct)w++;else l++}document.getElementById('count').textContent=n;document.getElementById('wins').textContent=w;document.getElementById('losses').textContent=l;document.getElementById('winrate').textContent=n?(w/n*100).toFixed(1)+'%':'0%'}
+document.getElementById('newData').addEventListener('click',()=>{randData();backtest()});document.getElementById('runTest').addEventListener('click',backtest);randData();backtest();
+</script></body></html>
