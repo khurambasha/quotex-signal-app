@@ -1,111 +1,150 @@
-<!doctype html>
-<html lang="ur" dir="rtl">
+
+<!DOCTYPE html>
+<html lang="ur">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quotex Signal App — Demo</title>
+<title>EUR/USD Live Signal</title>
 <style>
-:root{--bg:#08111f;--panel:#111e30;--panel2:#17263b;--text:#edf4ff;--muted:#9fb1ca;--line:#2b3d56;--blue:#5aa7ff;--green:#2bd39a;--red:#ff657a;--yellow:#ffd166}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Noto Nastaliq Urdu",Arial,sans-serif;padding:16px 13px 30px}
-.wrap{max-width:900px;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:10px}.eyebrow{color:var(--blue);font-size:12px;letter-spacing:.08em}h1{font-size:25px;margin:4px 0}.sub{color:var(--muted);font-size:13px;line-height:1.6}
-.notice{background:#2d281b;border:1px solid #675b2a;color:#ffe8a0;border-radius:13px;padding:11px 12px;margin:13px 0;font-size:13px;line-height:1.6}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px;margin:13px 0;box-shadow:0 8px 24px #0002}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.pill,button,select{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--panel2);color:var(--text);font-size:13px}button{cursor:pointer}button.primary{background:#1e4e80;border-color:#347cc2}button:active{transform:scale(.98)}select{max-width:100%}.signal{text-align:center;padding:18px 8px;border-radius:14px;background:#24334b;margin-top:12px}.signal strong{display:block;font-size:29px}.buy{color:var(--green)}.sell{color:var(--red)}.wait{color:var(--yellow)}.muted{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}.stat{background:var(--panel2);border-radius:12px;padding:11px;min-width:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat b{display:block;font-size:17px;margin-top:4px;overflow-wrap:anywhere}.chartbox{background:#0b1728;border:1px solid var(--line);border-radius:14px;margin-top:12px;padding:6px}canvas{display:block;width:100%;height:250px}.sectiontitle{font-size:18px;margin:0 0 8px}.indicators{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.indicator{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0d1929}.indicator b{display:block;font-size:14px}.indicator small{color:var(--muted);display:block;margin-top:3px;line-height:1.5}.tag{font-size:11px;border-radius:7px;padding:3px 7px;background:#25354b;color:var(--muted);display:inline-block;margin-top:6px}.foot{color:var(--muted);font-size:12px;line-height:1.7}
-@media(min-width:650px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.indicators{grid-template-columns:repeat(3,minmax(0,1fr))}canvas{height:320px}}
+body{background:#101827;color:#fff;font-family:Arial;padding:15px}
+.card{background:#1e293b;padding:15px;border-radius:12px;margin:12px 0}
+h2{color:#55e6a5;text-align:center}
+button,select{padding:12px;border-radius:8px;width:100%;margin-top:8px}
+button{background:#16a34a;color:white;border:0;font-size:17px}
+.big{font-size:27px;font-weight:bold}
+.green{color:#55e6a5}.red{color:#ff7272}
+small{color:#cbd5e1}
 </style>
 </head>
 <body>
-<div class="wrap">
- <div class="top"><div><div class="eyebrow">QUOTEX • EDUCATION / DEMO</div><h1>EUR/USD Signal App</h1><div class="sub">چارٹ، تکنیکی انڈیکیٹرز اور سگنل کی وضاحت</div></div><div class="pill">Demo Mode</div></div>
- <div class="notice">اہم: یہ ورژن فرضی / ڈیمو قیمتوں سے چلتا ہے، لائیو مارکیٹ فیڈ نہیں۔ BUY یا SELL منافع کی ضمانت نہیں؛ حقیقی رقم سے پہلے تاریخی ڈیٹا پر بیک ٹیسٹ کریں۔</div>
- <div class="card">
-  <div class="row between">
-   <div><div class="muted" style="font-size:12px">منتخب مارکیٹ</div><b>EUR/USD</b></div>
-   <label class="row">ٹائم فریم
-    <select id="tf"><option value="1">1 منٹ (ڈیمو)</option><option value="5">5 منٹ (ڈیمو)</option><option value="15">15 منٹ (ڈیمو)</option></select>
-   </label>
-   <button class="primary" id="refresh">نیا ڈیمو ڈیٹا</button>
-  </div>
-  <div class="signal"><div class="muted">مجموعی سگنل (صرف ڈیمو)</div><strong id="signal" class="wait">WAIT</strong><div id="reason" class="sub">انڈیکیٹرز کا حساب ہو رہا ہے</div></div>
-  <div class="stats">
-   <div class="stat"><span>ڈیمو قیمت</span><b id="price">—</b></div>
-   <div class="stat"><span>EMA 9 / EMA 21</span><b id="ema">—</b></div>
-   <div class="stat"><span>RSI (14)</span><b id="rsi">—</b></div>
-   <div class="stat"><span>سگنل اسکور</span><b id="score">—</b></div>
-  </div>
-  <div class="chartbox"><canvas id="chart" aria-label="Demo candlestick chart"></canvas></div>
-  <div class="foot">چارٹ کی کینڈلز مثال کے طور پر بنائی گئی ہیں۔ انہیں حقیقی EUR/USD قیمت نہ سمجھیں۔</div>
- </div>
- <div class="card">
-  <h2 class="sectiontitle">انڈیکیٹرز کی ریڈنگ</h2>
-  <div class="indicators" id="indicators"></div>
- </div>
- <div class="card">
-  <h2 class="sectiontitle">سگنل کیسے بنتا ہے؟</h2>
-  <p class="sub">EMA ٹرینڈ، RSI اور Stochastic مومینٹم، MACD مومینٹم کی تبدیلی، ADX ٹرینڈ کی طاقت، Bollinger Bands اتار چڑھاؤ، ATR اوسط حرکت، اور سپورٹ/ریزسٹنس ممکنہ قیمت کی رکاوٹیں دکھاتے ہیں۔ ان سب کو ملا کر بھی غلط سگنل آ سکتا ہے۔</p>
-  <div class="row"><span class="pill">EMA 9/21</span><span class="pill">RSI 14</span><span class="pill">MACD 12/26/9</span><span class="pill">ADX 14</span><span class="pill">Bollinger 20,2</span><span class="pill">Stochastic 14,3</span><span class="pill">ATR 14</span><span class="pill">Support/Resistance</span></div>
- </div>
+<h2>EUR/USD Signal App</h2>
+<div class="card">
+<small id="status">Market data لوڈ ہو رہا ہے...</small>
+<p>EUR/USD قیمت</p>
+<div class="big" id="price">--</div>
+<p id="updated">آخری اپ ڈیٹ: --</p>
 </div>
+<div class="card">
+<label>Timeframe</label>
+<select id="tf">
+<option value="5m">5 منٹ</option>
+<option value="15m">15 منٹ</option>
+<option value="1m">1 منٹ</option>
+</select>
+<button onclick="analyze()">ابھی مارکیٹ کا تجزیہ کریں</button>
+</div>
+<div class="card">
+<h3>پانچ اصولوں کا تجزیہ</h3>
+<p id="ema">1. EMA 9/21: --</p>
+<p id="rsi">2. RSI 14: --</p>
+<p id="sr">3. Support/Resistance: --</p>
+<p id="candle">4. Candle confirmation: --</p>
+<p id="market">5. Market condition: --</p>
+</div>
+<div class="card">
+<h3>تجویز کردہ سگنل</h3>
+<div class="big" id="signal">WAIT</div>
+<p id="reason">معتبر ڈیٹا کا انتظار کریں۔</p>
+<small>یہ تجزیاتی ٹول ہے، منافع یا 85% درستگی کی ضمانت نہیں۔</small>
+</div>
+<p><small>Data source: biquote.io — قیمتیں اور بروکر کے نرخ مختلف ہو سکتے ہیں۔</small></p>
 <script>
 const $=id=>document.getElementById(id);
-let candles=[];
-function generate(n=70){
- let p=1.0800; candles=[];
- for(let i=0;i<n;i++){
-  let drift=(Math.random()-.49)*.0012 + Math.sin(i/7)*.00008;
-  let o=p, c=Math.max(1.05,p+drift), h=Math.max(o,c)+Math.random()*.00035, l=Math.min(o,c)-Math.random()*.00035;
-  candles.push({o,h,l,c}); p=c;
+let busy=false;
+
+function ema(values,n){
+ let k=2/(n+1),v=values[0];
+ for(let i=1;i<values.length;i++)v=values[i]*k+v*(1-k);
+ return v;
+}
+function rsi(values,n=14){
+ let up=0,down=0;
+ for(let i=values.length-n;i<values.length;i++){
+  let d=values[i]-values[i-1];
+  if(d>0)up+=d;else down-=d;
  }
+ up/=n;down/=n;
+ return down===0?100:100-100/(1+up/down);
 }
-function ema(values,period){let k=2/(period+1),out=[],e=values[0];for(let i=0;i<values.length;i++){e=i===0?values[0]:values[i]*k+e*(1-k);out.push(e)}return out}
-function rsi(vals,n=14){let out=Array(vals.length).fill(50);for(let i=n;i<vals.length;i++){let g=0,l=0;for(let j=i-n+1;j<=i;j++){let d=vals[j]-vals[j-1];if(d>0)g+=d;else l-=d}out[i]=l===0?100:100-100/(1+g/l)}return out}
-function macd(vals){let a=ema(vals,12),b=ema(vals,26),m=vals.map((v,i)=>a[i]-b[i]),s=ema(m,9);return {m,s,h:m.map((v,i)=>v-s[i])}}
-function bb(vals,n=20){return vals.map((v,i)=>{let ar=vals.slice(Math.max(0,i-n+1),i+1),mean=ar.reduce((a,b)=>a+b,0)/ar.length,sd=Math.sqrt(ar.reduce((a,b)=>a+(b-mean)**2,0)/ar.length);return {mid:mean,up:mean+2*sd,lo:mean-2*sd}})}
-function stochastic(cs,n=14){return cs.map((c,i)=>{let a=cs.slice(Math.max(0,i-n+1),i+1),hi=Math.max(...a.map(x=>x.h)),lo=Math.min(...a.map(x=>x.l));return hi===lo?50:100*(c.c-lo)/(hi-lo)})}
-function atr(cs,n=14){return cs.map((c,i)=>{let a=cs.slice(Math.max(1,i-n+1),i+1).map((x,j)=>{let prev=cs[Math.max(0,i-n+1)+j];return Math.max(x.h-x.l,Math.abs(x.h-prev.c),Math.abs(x.l-prev.c))});return a.reduce((s,x)=>s+x,0)/Math.max(1,a.length)})}
-function adx(cs,n=14){let out=Array(cs.length).fill(15);for(let i=n;i<cs.length;i++){let plus=0,minus=0,tr=0;for(let j=i-n+1;j<=i;j++){let up=cs[j].h-cs[j-1].h,down=cs[j-1].l-cs[j].l;if(up>down&&up>0)plus+=up;if(down>up&&down>0)minus+=down;tr+=Math.max(cs[j].h-cs[j].l,Math.abs(cs[j].h-cs[j-1].c),Math.abs(cs[j].l-cs[j-1].c))}let p=100*plus/(tr||1),m=100*minus/(tr||1);out[i]=100*Math.abs(p-m)/(p+m||1)}return out}
-function fmt(v,d=5){return Number(v).toFixed(d)}
-function draw(){
- const canvas=$('chart'),ctx=canvas.getContext('2d'),w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;
- canvas.width=w*dpr;canvas.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
- if(!candles.length)return;
- let min=Math.min(...candles.map(c=>c.l)),max=Math.max(...candles.map(c=>c.h)),pad=(max-min)*.12||.001;min-=pad;max+=pad;
- const y=v=>h-12-(v-min)/(max-min)*(h-24),step=w/candles.length,cw=Math.max(2,step*.55);
- ctx.strokeStyle='#23344b';ctx.lineWidth=1;
- for(let i=0;i<5;i++){let yy=12+i*(h-24)/4;ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke()}
- candles.forEach((c,i)=>{let x=i*step+step/2,up=c.c>=c.o;ctx.strokeStyle=up?'#2bd39a':'#ff657a';ctx.fillStyle=ctx.strokeStyle;ctx.beginPath();ctx.moveTo(x,y(c.h));ctx.lineTo(x,y(c.l));ctx.stroke();let top=y(Math.max(c.o,c.c)),bot=y(Math.min(c.o,c.c));ctx.fillRect(x-cw/2,top,cw,Math.max(1,bot-top))});
- const vals=candles.map(c=>c.c),e9=ema(vals,9),e21=ema(vals,21);
- function line(a,color){ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.5;a.forEach((v,i)=>{let x=i*step+step/2;if(i===0)ctx.moveTo(x,y(v));else ctx.lineTo(x,y(v))});ctx.stroke()}
- line(e9,'#ffd166');line(e21,'#5aa7ff');
- ctx.fillStyle='#9fb1ca';ctx.font='11px sans-serif';ctx.fillText('EMA 9',8,15);ctx.fillStyle='#5aa7ff';ctx.fillText('EMA 21',62,15);
+async function analyze(){
+ if(busy)return;
+ busy=true;
+ $('status').textContent='مارکیٹ ڈیٹا حاصل ہو رہا ہے...';
+ $('signal').textContent='WAIT';
+ $('reason').textContent='تجزیہ جاری ہے۔';
+ try{
+  const tf=$('tf').value;
+  const url='https://biquote.io/api/EURUSD/ohlc?interval='+tf+'&limit=100';
+  const res=await fetch(url,{cache:'no-store'});
+  if(!res.ok)throw Error('ڈیٹا سورس نے جواب نہیں دیا ('+res.status+')');
+  const data=await res.json();
+  if(!Array.isArray(data.bars))throw Error('کینڈل ڈیٹا دستیاب نہیں');
+  const bars=data.bars.filter(b=>!b.isOpen&&Number.isFinite(Number(b.close)));
+  if(bars.length<30)throw Error('کافی بند کینڈلز دستیاب نہیں');
+  bars.sort((a,b)=>new Date(a.openTime)-new Date(b.openTime));
+  const closes=bars.map(b=>Number(b.close));
+  const last=bars[bars.length-1],prev=bars[bars.length-2];
+  const price=closes[closes.length-1];
+  const e9=ema(closes.slice(-60),9),e21=ema(closes.slice(-60),21);
+  const rv=rsi(closes);
+  const recent=bars.slice(-20);
+  const support=Math.min(...recent.map(b=>Number(b.low)));
+  const resistance=Math.max(...recent.map(b=>Number(b.high)));
+  const bullish=Number(last.close)>Number(last.open);
+  const bearish=Number(last.close)<Number(last.open);
+  const trendUp=e9>e21,trendDown=e9<e21;
+  const momentumUp=rv>50&&rv<70;
+  const momentumDown=rv<50&&rv>30;
+  const nearSupport=price-support<=(resistance-support)*.15;
+  const nearResistance=resistance-price<=(resistance-support)*.15;
+  const marketOK=rv>25&&rv<75&&resistance>support;
+  const checks=[
+   trendUp&&momentumUp,
+   trendDown&&momentumDown,
+   nearSupport&&!nearResistance,
+   nearResistance&&!nearSupport,
+   marketOK
+  ];
+  $('price').textContent=price.toFixed(5);
+  $('updated').textContent='آخری بند کینڈل: '+new Date(last.openTime).toLocaleString();
+  $('ema').textContent='1. EMA 9/21: '+(trendUp?'تیزی':trendDown?'مندی':'غیر واضح');
+  $('rsi').textContent='2. RSI 14: '+rv.toFixed(1);
+  $('sr').textContent='3. Support: '+support.toFixed(5)+' | Resistance: '+resistance.toFixed(5);
+  $('candle').textContent='4. آخری بند کینڈل: '+(bullish?'Bullish':bearish?'Bearish':'Neutral');
+  $('market').textContent='5. مارکیٹ فلٹر: '+(marketOK?'قابلِ تجزیہ':'کمزور/انتہائی RSI');
+  $('status').textContent='ڈیٹا موصول ہوا — '+data.symbol+' ('+tf+')';
+  let buy=0,sell=0;
+  if(trendUp)buy++;
+  if(trendDown)sell++;
+  if(momentumUp)buy++;
+  if(momentumDown)sell++;
+  if(nearSupport&&!nearResistance)buy++;
+  if(nearResistance&&!nearSupport)sell++;
+  if(bullish)buy++;
+  if(bearish)sell++;
+  if(marketOK){if(buy>=3&&buy>sell&&trendUp&&momentumUp){
+    $('signal').textContent='BUY (ڈیمو)';
+    $('signal').className='big green';
+    $('reason').textContent='کئی اشارے تیزی کے حق میں ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';
+  }else if(sell>=3&&sell>buy&&trendDown&&momentumDown){
+    $('signal').textContent='SELL (ڈیمو)';
+    $('signal').className='big red';
+    $('reason').textContent='کئی اشارے مندی کے حق میں ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';
+  }else{
+    $('signal').textContent='WAIT';
+    $('reason').textContent='اشارے مکمل طور پر متفق نہیں؛ ٹریڈ سے گریز کریں۔';
+  }}else{
+   $('signal').textContent='WAIT';
+   $('reason').textContent='مارکیٹ فلٹر پاس نہیں ہوا۔';
+  }
+ }catch(e){
+  $('status').textContent='ڈیٹا دستیاب نہیں';
+  $('signal').textContent='WAIT';
+  $('reason').textContent=e.message+' — دوبارہ کوشش کریں۔';
+ }finally{busy=false;}
 }
-function render(){
- const cs=candles,vals=cs.map(c=>c.c),last=vals.length-1;
- const e9=ema(vals,9),e21=ema(vals,21),rr=rsi(vals),mc=macd(vals),bands=bb(vals),st=stochastic(cs),at=atr(cs),ad=adx(cs);
- const up=e9[last]>e21[last],r=rr[last],mac=mc.h[last],adxv=ad[last],bbv=bands[last],stv=st[last];
- let votes=0; votes+=up?1:-1;votes+=r>52?1:r<48?-1:0;votes+=mac>0?1:mac<0?-1:0;votes+=adxv>=20?(up?1:-1):0;votes+=stv>55?1:stv<45?-1:0;
- let sig=votes>=3?'BUY':votes<=-3?'SELL':'WAIT';
- $('signal').textContent=sig;$('signal').className=sig==='BUY'?'buy':sig==='SELL'?'sell':'wait';
- $('reason').textContent=`${Math.abs(votes)} کے قریب اشاروں کا جھکاؤ؛ ADX ${adxv.toFixed(1)} (${adxv>=20?'ٹرینڈ نسبتاً مضبوط':'ٹرینڈ کمزور'})`;
- $('price').textContent=fmt(vals[last]);$('ema').textContent=fmt(e9[last])+' / '+fmt(e21[last]);$('rsi').textContent=r.toFixed(1);$('score').textContent=`${votes>0?'+':''}${votes} / 5`;
- const sup=Math.min(...cs.slice(-20).map(c=>c.l)),res=Math.max(...cs.slice(-20).map(c=>c.h));
- const items=[
- ['EMA 9 / 21',up?'تیزی کی سمت':'مندی کی سمت',up?'BUY کی حمایت':'SELL کی حمایت'],
- ['RSI 14',r.toFixed(1),r>=70?'زیادہ خریدا گیا':r<=30?'زیادہ فروخت ہوا':r>50?'مومینٹم مثبت':'مومینٹم کمزور'],
- ['MACD',fmt(mc.m[last],6),mac>0?'ہسٹوگرام مثبت':'ہسٹوگرام منفی'],
- ['ADX 14',adxv.toFixed(1),adxv>=25?'ٹرینڈ مضبوط':adxv>=20?'درمیانی طاقت':'ٹرینڈ کمزور'],
- ['Bollinger Bands',fmt(bbv.lo)+' – '+fmt(bbv.up),vals[last]>=bbv.up?'اوپری بینڈ کے قریب':vals[last]<=bbv.lo?'نچلے بینڈ کے قریب':'بینڈ کے اندر'],
- ['Stochastic',stv.toFixed(1),stv>=80?'زیادہ خریدا گیا':stv<=20?'زیادہ فروخت ہوا':stv>50?'مومینٹم اوپر':'مومینٹم نیچے'],
- ['ATR 14',fmt(at[last],6),'اوسط حرکت / اتار چڑھاؤ'],
- ['Support (20)',fmt(sup),'حالیہ ڈیمو کم ترین سطح'],
- ['Resistance (20)',fmt(res),'حالیہ ڈیمو بلند ترین سطح']
- ];
- $('indicators').innerHTML=items.map(a=>`<div class="indicator"><b>${a[0]}</b><div>${a[1]}</div><small>${a[2]}</small></div>`).join('');
- draw();
-}
-$('refresh').addEventListener('click',()=>{generate(70);render()});
-$('tf').addEventListener('change',()=>{generate(70);render()});
-window.addEventListener('resize',draw);
-generate();render();
+analyze();
+setInterval(analyze,60000);
 </script>
 </body>
 </html>
