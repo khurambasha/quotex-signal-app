@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EUR/USD Signal App</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:#101827;color:#f8fafc;font-family:Arial,"Noto Naskh Arabic",sans-serif;padding:14px;line-height:1.55}
+h2{color:#55e6a5;text-align:center;margin:10px 0 20px}
+h3{margin:4px 0 12px}
+.card{background:#1e293b;padding:16px;border-radius:15px;margin:13px 0;overflow:hidden}
+#status,small{color:#cbd5e1}
+.big{font-size:30px;font-weight:bold;overflow-wrap:anywhere}
+button,select{padding:14px;border-radius:9px;width:100%;margin-top:9px;font-size:16px}
+select{background:#f8fafc;color:#111827}
+button{background:#16a34a;color:white;border:0;font-weight:bold}
+button:disabled{opacity:.65}
+.green{color:#55e6a5}.red{color:#ff7272}
+#chart{width:100%;height:330px;min-height:260px}
+.row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.metric{background:#0f172a;padding:10px;border-radius:9px;flex:1;min-width:120px}
+</style>
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+<h2>EUR/USD Signal App</h2>
+
+<div class="card">
+  <small id="status">مارکیٹ ڈیٹا لوڈ ہو رہا ہے...</small>
+  <p>EUR/USD قیمت</p>
+  <div class="big" id="price">--</div>
+  <p id="updated">آخری بند کینڈل: --</p>
+</div>
+
+<div class="card">
+  <label for="tf">Timeframe</label>
+  <select id="tf">
+    <option value="5m">5 منٹ</option>
+    <option value="15m">15 منٹ</option>
+    <option value="1m">1 منٹ</option>
+  </select>
+  <button id="analyzeBtn" onclick="analyze()">ابھی مارکیٹ کا تجزیہ کریں</button>
+</div>
+
+<div class="card">
+  <h3>EUR/USD کینڈل چارٹ</h3>
+  <div id="chart"></div>
+  <small>سبز کینڈل قیمت اوپر بند ہونے اور سرخ کینڈل قیمت نیچے بند ہونے کو دکھاتی ہے۔</small>
+</div>
+
+<div class="card">
+  <h3>اشاروں کا تجزیہ</h3>
+  <p id="ema">1. EMA 9/21: --</p>
+  <p id="rsi">2. RSI 14: --</p>
+  <p id="macd">3. MACD: --</p>
+  <p id="sr">4. Support/Resistance: --</p>
+  <p id="candle">5. آخری بند کینڈل: --</p>
+  <p id="market">6. مارکیٹ کی حالت: --</p>
+</div>
+
+<div class="card">
+  <h3>تجویز کردہ سگنل</h3>
+  <div class="big" id="signal">WAIT</div>
+  <p id="reason">معتبر ڈیٹا کا انتظار کریں۔</p>
+  <small>یہ صرف تجزیاتی/تعلیمی سگنل ہے۔ منافع یا درستگی کی ضمانت نہیں۔ پہلے ڈیمو پر آزمائیں۔</small>
+</div>
+
+<p><small>Data source: biquote.io. اس سورس کا ڈیٹا بند ہو یا بروکر کے نرخ مختلف ہوں تو تجزیہ دستیاب نہیں ہو سکتا۔</small></p>
+
+<script>
+const $ = id => document.getElementById(id);
+let chart = null, candleSeries = null, ema9Series = null, ema21Series = null;
+let busy = false;
+
+function initChart(){
+  const el = $('chart');
+  if(!window.LightweightCharts){
+    el.textContent = 'چارٹ لائبریری لوڈ نہیں ہوئی۔ انٹرنیٹ کنکشن چیک کریں۔';
+    return;
+  }
+  chart = LightweightCharts.createChart(el,{
+    width:el.clientWidth || 300,
+    height:330,
+    layout:{background:{type:'solid',color:'#1e293b'},textColor:'#e2e8f0'},
+    grid:{vertLines:{color:'#334155'},horzLines:{color:'#334155'}},
+    rightPriceScale:{borderColor:'#475569'},
+    timeScale:{borderColor:'#475569',timeVisible:true,secondsVisible:false},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal}
+  });
+  candleSeries = chart.addCandlestickSeries({
+    upColor:'#22c55e',downColor:'#ef4444',
+    borderUpColor:'#22c55e',borderDownColor:'#ef4444',
+    wickUpColor:'#22c55e',wickDownColor:'#ef4444'
+  });
+  ema9Series = chart.addLineSeries({color:'#facc15',lineWidth:2, title:'EMA 9'});
+  ema21Series = chart.addLineSeries({color:'#60a5fa',lineWidth:2, title:'EMA 21'});
+  if(window.ResizeObserver){
+    new ResizeObserver(()=>{if(chart) chart.applyOptions({width:el.clientWidth || 300});}).observe(el);
+  }
+}
+initChart();
+
+function emaArray(values, period){
+  const k=2/(period+1), out=[];
+  let v=values[0];
+  for(let i=0;i<values.length;i++){
+    v = i===0 ? values[i] : values[i]*k + v*(1-k);
+    out.push(v);
+  }
+  return out;
+}
+function calcRsi(values, period=14){
+  if(values.length < period+1) return NaN;
+  let gain=0,loss=0;
+  for(let i=values.length-period;i<values.length;i++){
+    const d=values[i]-values[i-1];
+    if(d>0) gain+=d; else loss-=d;
+  }
+  gain/=period; loss/=period;
+  if(loss===0) return 100;
+  return 100-(100/(1+gain/loss));
+}
+function calcMacd(values){
+  const e12=emaArray(values,12), e26=emaArray(values,26);
+  return e12[e12.length-1]-e26[e26.length-1];
+}
+function toUnixTime(value){
+  if(typeof value==='number') return Math.floor(value>1e12 ? value/1000 : value);
+  const ms=new Date(value).getTime();
+  return Number.isFinite(ms) ? Math.floor(ms/1000) : NaN;
+}
+async function analyze(){
+  if(busy) return;
+  busy=true;
+  $('analyzeBtn').disabled=true;
+  $('status').textContent='مارکیٹ ڈیٹا حاصل ہو رہا ہے...';
+  $('signal').textContent='WAIT';
+  $('signal').className='big';
+  $('reason').textContent='تجزیہ جاری ہے۔';
+  try{
+    const tf=$('tf').value;
+    const url='https://biquote.io/api/EURUSD/ohlc?interval='+encodeURIComponent(tf)+'&limit=150';
+    const res=await fetch(url,{cache:'no-store'});
+    if(!res.ok) throw Error('ڈیٹا سورس نے جواب نہیں دیا ('+res.status+')');
+    const data=await res.json();
+    if(!data || !Array.isArray(data.bars)) throw Error('ڈیٹا سورس سے candle data نہیں ملا');
+    const bars=data.bars.filter(b=>
+      b && Number.isFinite(Number(b.open)) &&
+      Number.isFinite(Number(b.high)) &&
+      Number.isFinite(Number(b.low)) &&
+      Number.isFinite(Number(b.close)) &&
+      b.openTime!=null && !b.isOpen
+    ).map(b=>({
+      time:toUnixTime(b.openTime),
+      open:Number(b.open),high:Number(b.high),
+      low:Number(b.low),close:Number(b.close)
+    })).filter(b=>Number.isFinite(b.time))
+      .sort((a,b)=>a.time-b.time);
+    const unique=bars.filter((b,i,a)=>i===0 || b.time!==a[i-1].time);
+    if(unique.length<30) throw Error('کافی بند کینڈلز دستیاب نہیں');
+    const closes=unique.map(b=>b.close);
+    const last=unique[unique.length-1];
+    const e9=emaArray(closes,9), e21=emaArray(closes,21);
+    const rv=calcRsi(closes,14);
+    const macd=calcMacd(closes);
+    const recent=unique.slice(-20);
+    const support=Math.min(...recent.map(b=>b.low));
+    const resistance=Math.max(...recent.map(b=>b.high));
+    const range=resistance-support;
+    const bullish=last.close>last.open, bearish=last.close<last.open;
+    const trendUp=e9[e9.length-1]>e21[e21.length-1];
+    const trendDown=e9[e9.length-1]<e21[e21.length-1];
+    const momentumUp=rv>50&&rv<70;
+    const momentumDown=rv<50&&rv>30;
+    const nearSupport=range>0 && last.close-support<=range*.15;
+    const nearResistance=range>0 && resistance-last.close<=range*.15;
+    const marketOK=Number.isFinite(rv)&&rv>25&&rv<75&&range>0;
+
+    if(candleSeries && chart){
+      candleSeries.setData(unique);
+      ema9Series.setData(unique.map((b,i)=>({time:b.time,value:e9[i]})));
+      ema21Series.setData(unique.map((b,i)=>({time:b.time,value:e21[i]})));
+      chart.timeScale().fitContent();
+    }
+    $('price').textContent=last.close.toFixed(5);
+    $('updated').textContent='آخری بند کینڈل: '+new Date(last.time*1000).toLocaleString();
+    $('ema').textContent='1. EMA 9/21: '+(trendUp?'تیزی':trendDown?'مندی':'غیر واضح');
+    $('rsi').textContent='2. RSI 14: '+rv.toFixed(1);
+    $('macd').textContent='3. MACD: '+(macd>0?'صفر سے اوپر (تیزی کا دباؤ)':macd<0?'صفر سے نیچے (مندی کا دباؤ)':'غیر واضح');
+    $('sr').textContent='4. Support: '+support.toFixed(5)+' | Resistance: '+resistance.toFixed(5);
+    $('candle').textContent='5. آخری بند کینڈل: '+(bullish?'Bullish':bearish?'Bearish':'Neutral');
+    $('market').textContent='6. مارکیٹ کی حالت: '+(marketOK?'قابلِ تجزیہ':'کمزور/انتہائی RSI');
+    $('status').textContent='ڈیٹا موصول ہوا — '+(data.symbol||'EUR/USD')+' ('+tf+')';
+
+    let buy=0,sell=0;
+    if(trendUp) buy++; if(trendDown) sell++;
+    if(momentumUp) buy++; if(momentumDown) sell++;
+    if(macd>0) buy++; if(macd<0) sell++;
+    if(nearSupport&&!nearResistance) buy++;
+    if(nearResistance&&!nearSupport) sell++;
+    if(bullish) buy++; if(bearish) sell++;
+    if(marketOK && buy>=3 && buy>sell && trendUp && momentumUp){
+      $('signal').textContent='BUY (ڈیمو)';
+      $('signal').className='big green';
+      $('reason').textContent='کئی اشارے تیزی کے حق میں ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';
+    }else if(marketOK && sell>=3 && sell>buy && trendDown && momentumDown){
+      $('signal').textContent='SELL (ڈیمو)';
+      $('signal').className='big red';
+      $('reason').textContent='کئی اشارے مندی کے حق میں ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';
+    }else{
+      $('signal').textContent='WAIT';
+      $('reason').textContent='اشارے مکمل طور پر متفق نہیں؛ ٹریڈ سے گریز کریں۔';
+    }
+  }catch(e){
+    $('status').textContent='ڈیٹا دستیاب نہیں';
+    $('signal').textContent='WAIT';
+    $('reason').textContent=(e && e.message ? e.message : 'نامعلوم خرابی')+' — دوبارہ کوشش کریں۔';
+    if(candleSeries && chart && !candleSeries.data?.().length){
+      $('chart').style.minHeight='260px';
+    }
+  }finally{
+    busy=false;
+    $('analyzeBtn').disabled=false;
+  }
+}
+$('tf').addEventListener('change',analyze);
+analyze();
+setInterval(analyze,60000);
+</script>
+</body>
+</html>
