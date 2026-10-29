@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quotex Signal App — EUR/USD</title>
+<script src="https://unpkg.com/lightweight-charts@4.2.2/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#0b1220;--panel:#121d30;--line:#25354e;--text:#eef4ff;--muted:#a9b8cf;--green:#21c78a;--red:#ff657a;--yellow:#f5c451;--blue:#67a8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,"Noto Nastaliq Urdu",sans-serif;padding:14px}
+.wrap{max-width:1000px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 5px}.sub{color:var(--muted);font-size:13px}
+.pill{border:1px solid var(--line);border-radius:99px;padding:7px 11px;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px;min-width:0}
+.label{font-size:12px;color:var(--muted);margin-bottom:7px}.value{font-size:20px;font-weight:700;overflow-wrap:anywhere}.small{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+#chart{height:340px;width:100%;margin-top:10px}
+.section{margin-top:12px}.section h2{font-size:16px;margin:0 0 10px}
+.signal{font-size:27px;font-weight:800;letter-spacing:1px}.buy{color:var(--green)}.sell{color:var(--red)}.wait{color:var(--yellow)}
+.indicators{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.indicator{background:#0d1728;border:1px solid var(--line);border-radius:10px;padding:10px}
+.indicator b{display:block;margin-top:5px;font-size:15px}.row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:8px 0;font-size:13px}.row:last-child{border:0}
+button,select{background:#1b2c46;color:var(--text);border:1px solid #385171;border-radius:9px;padding:10px;font-size:14px}
+button{cursor:pointer}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.notice{background:#201d13;border:1px solid #5d4b22;color:#f4d99a;border-radius:10px;padding:11px;font-size:12px;line-height:1.55;margin-top:12px}
+.status{font-size:12px;color:var(--muted);line-height:1.5}.footer{font-size:11px;color:var(--muted);margin:14px 2px}
+@media(min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.indicators{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>📈 Quotex Signal App</h1><div class="sub">EUR/USD • تجزیاتی ڈیش بورڈ</div></div>
+    <div class="pill" id="connection">ڈیٹا چیک ہو رہا ہے…</div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="label">آخری دستیاب قیمت</div><div class="value" id="price">—</div><div class="small" id="priceTime">ابھی ڈیٹا نہیں ملا</div></div>
+    <div class="card"><div class="label">مارکیٹ ٹرینڈ</div><div class="value" id="trend">—</div><div class="small">EMA 9 بمقابلہ EMA 21</div></div>
+    <div class="card"><div class="label">تجویز کردہ سگنل</div><div class="signal wait" id="signal">WAIT</div><div class="small" id="signalReason">ڈیٹا کا انتظار ہے</div></div>
+    <div class="card"><div class="label">اشاروں کا اتفاق</div><div class="value" id="agreement">—</div><div class="small">یہ درستگی کا فیصد نہیں ہے</div></div>
+  </div>
+
+  <div class="card section">
+    <h2>EUR/USD کینڈل چارٹ</h2>
+    <div id="chart"></div>
+    <div class="controls">
+      <label for="timeframe" class="sub">ٹائم فریم:</label>
+      <select id="timeframe"><option value="5m">5 منٹ</option><option value="15m" selected>15 منٹ</option><option value="30m">30 منٹ</option><option value="1h">1 گھنٹہ</option></select>
+      <button id="refresh">ابھی ریفریش کریں</button>
+      <span class="status" id="updated">اپ ڈیٹ کا انتظار ہے</span>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>انڈیکیٹرز کا تجزیہ</h2>
+    <div class="indicators">
+      <div class="indicator"><div class="label">EMA 9 / EMA 21</div><b id="emaText">—</b></div>
+      <div class="indicator"><div class="label">RSI 14</div><b id="rsiText">—</b><div class="small">70 سے اوپر overbought، 30 سے نیچے oversold ہو سکتا ہے</div></div>
+      <div class="indicator"><div class="label">MACD</div><b id="macdText">—</b></div>
+      <div class="indicator"><div class="label">Bollinger Bands (20,2)</div><b id="bbText">—</b></div>
+      <div class="indicator"><div class="label">Stochastic (14)</div><b id="stochText">—</b></div>
+      <div class="indicator"><div class="label">آخری بند کینڈل</div><b id="candleText">—</b></div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>اہم قیمتیں</h2>
+    <div class="row"><span>Support (تقریبی)</span><b id="support">—</b></div>
+    <div class="row"><span>Resistance (تقریبی)</span><b id="resistance">—</b></div>
+    <div class="row"><span>ڈیٹا کی حالت</span><b id="dataState">چیک ہو رہی ہے</b></div>
+  </div>
+
+  <div class="notice">
+    ⚠️ یہ تعلیمی تجزیہ ہے، مالی مشورہ نہیں۔ 88% درستگی یا منافع کی ضمانت نہیں۔ پہلے ڈیمو پر ٹیسٹ کریں۔ ویب سائٹ کے ڈیٹا میں تاخیر، بندش یا بروکر کے نرخوں کا فرق ہو سکتا ہے۔ سگنل خودکار ٹریڈ نہیں کھولتا۔
+  </div>
+  <div class="footer">Data source: biquote.io (اگر سورس دستیاب ہو) • آخری کامیاب ڈیٹا کا وقت اوپر دکھایا جائے گا۔</div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  let chart, candleSeries, ema9Series, ema21Series;
+  let lastCandles = [];
+  function initChart(){
+    if(!window.LightweightCharts){ $('connection').textContent='چارٹ لائبریری لوڈ نہیں ہوئی'; return; }
+    const el=$('chart');
+    chart=LightweightCharts.createChart(el,{
+      width:el.clientWidth,height:340,
+      layout:{background:{type:'solid',color:'#121d30'},textColor:'#a9b8cf'},
+      grid:{vertLines:{color:'#1c2a40'},horzLines:{color:'#1c2a40'}},
+      rightPriceScale:{borderColor:'#25354e'},
+      timeScale:{borderColor:'#25354e',timeVisible:true,secondsVisible:false},
+      crosshair:{mode:LightweightCharts.CrosshairMode.Normal}
+    });
+    candleSeries=chart.addCandlestickSeries({upColor:'#21c78a',downColor:'#ff657a',borderVisible:false,wickUpColor:'#21c78a',wickDownColor:'#ff657a'});
+    ema9Series=chart.addLineSeries({color:'#67a8ff',lineWidth:2,priceLineVisible:false,lastValueVisible:true});
+    ema21Series=chart.addLineSeries({color:'#f5c451',lineWidth:2,priceLineVisible:false,lastValueVisible:true});
+    window.addEventListener('resize',()=>{if(chart)chart.applyOptions({width:el.clientWidth});});
+  }
+  function num(x){const n=Number(x);return Number.isFinite(n)?n:null;}
+  function parseRows(json){
+    let arr=Array.isArray(json)?json:(json?.data||json?.candles||json?.ohlc||json?.result||[]);
+    if(!Array.isArray(arr)) return [];
+    const out=[];
+    for(const r of arr){
+      let t=r.time??r.timestamp??r.date??r.datetime??r.t;
+      let o=num(r.open??r.o),h=num(r.high??r.h),l=num(r.low??r.l),c=num(r.close??r.c);
+      if(t==null||o==null||h==null||l==null||c==null)continue;
+      let ts=typeof t==='number'?t:Date.parse(t)/1000;
+      if(!Number.isFinite(ts))continue;
+      if(ts>1e12)ts=Math.floor(ts/1000);
+      out.push({time:Math.floor(ts),open:o,high:h,low:l,close:c});
+    }
+    out.sort((a,b)=>a.time-b.time);
+    return out.filter((x,i)=>i===0||x.time!==out[i-1].time);
+  }
+  function ema(values,period){
+    const out=Array(values.length).fill(null); if(values.length<period)return out;
+    let s=values.slice(0,period).reduce((a,b)=>a+b,0)/period;out[period-1]=s;
+    const k=2/(period+1);
+    for(let i=period;i<values.length;i++){s=values[i]*k+s*(1-k);out[i]=s;} return out;
+  }
+  function rsi(values,p=14){
+    const out=Array(values.length).fill(null);if(values.length<=p)return out;
+    let gain=0,loss=0;
+    for(let i=1;i<=p;i++){let d=values[i]-values[i-1];gain+=Math.max(d,0);loss+=Math.max(-d,0);}
+    let ag=gain/p,al=loss/p;out[p]=al===0?100:100-100/(1+ag/al);
+    for(let i=p+1;i<values.length;i++){let d=values[i]-values[i-1];ag=(ag*(p-1)+Math.max(d,0))/p;al=(al*(p-1)+Math.max(-d,0))/p;out[i]=al===0?100:100-100/(1+ag/al);}
+    return out;
+  }
+  function sma(vals,p,i){if(i+1<p)return null;let a=vals.slice(i-p+1,i+1);return a.reduce((x,y)=>x+y,0)/p;}
+  function fmt(v){return v==null||!Number.isFinite(v)?'—':v.toFixed(5);}
+  function setText(id,t){$(id).textContent=t;}
+  function analyze(candles){
+    const close=candles.map(x=>x.close),e9=ema(close,9),e21=ema(close,21),r=rsi(close,14);
+    const e12=ema(close,12),e26=ema(close,26),mac=e12.map((x,i)=>x==null||e26[i]==null?null:x-e26[i]),sig=ema(mac.map(x=>x==null?0:x),9);
+    const i=close.length-1, price=close[i], rsiNow=r[i], macdNow=mac[i],sigNow=sig[i];
+    let mid=sma(close,20,i),sd=null;
+    if(mid!=null){let slice=close.slice(i-19,i+1);sd=Math.sqrt(slice.reduce((s,x)=>s+(x-mid)**2,0)/20);}
+    let upper=mid==null?null:mid+2*sd,lower=mid==null?null:mid-2*sd;
+    const recent=candles.slice(Math.max(0,candles.length-30),-1);
+    const support=recent.length?Math.min(...recent.map(x=>x.low)):null;
+    const resistance=recent.length?Math.max(...recent.map(x=>x.high)):null;
+    const last=candles[i],bull=last.close>last.open,bear=last.close<last.open;
+    // Stochastic %K, period 14
+    let stoch=null;
+    if(i>=13){const seg=candles.slice(i-13,i+1),hh=Math.max(...seg.map(x=>x.high)),ll=Math.min(...seg.map(x=>x.low));stoch=hh===ll?50:100*(price-ll)/(hh-ll);}
+    const votes=[];
+    if(e9[i]!=null&&e21[i]!=null)votes.push(e9[i]>e21[i]?1:e9[i]<e21[i]?-1:0);
+    if(rsiNow!=null)votes.push(rsiNow>55?1:rsiNow<45?-1:0);
+    if(macdNow!=null&&sigNow!=null)votes.push(macdNow>sigNow?1:macdNow<sigNow?-1:0);
+    if(bull||bear)votes.push(bull?1:-1);
+    if(stoch!=null)votes.push(stoch>55&&stoch<80?1:stoch<45&&stoch>20?-1:0);
+    const active=votes.filter(x=>x!==0),up=active.filter(x=>x>0).length,down=active.filter(x=>x<0).length;
+    let signal='WAIT',reason='اشارے مکمل طور پر متفق نہیں؛ ٹریڈ سے گریز کریں۔';
+    if(active.length>=3&&up>=3&&up>down){signal='BUY';reason='کئی اشارے تیزی کی حمایت کر رہے ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';}
+    else if(active.length>=3&&down>=3&&down>up){signal='SELL';reason='کئی اشارے مندی کی حمایت کر رہے ہیں؛ پہلے ڈیمو پر تصدیق کریں۔';}
+    setText('price',fmt(price));setText('priceTime',new Date(last.time*1000).toLocaleString());
+    setText('trend',e9[i]>e21[i]?'تیزی':e9[i]<e21[i]?'مندی':'غیر واضح');
+    setText('emaText',fmt(e9[i])+' / '+fmt(e21[i]));
+    setText('rsiText',rsiNow==null?'—':rsiNow.toFixed(1)+(rsiNow>=70?' • زیادہ خریداری':rsiNow<=30?' • زیادہ فروخت':''));
+    setText('macdText',macdNow==null?'—':(macdNow>sigNow?'سگنل لائن سے اوپر (تیزی)':'سگنل لائن سے نیچے (مندی)'));
+    setText('bbText',mid==null?'مزید ڈیٹا درکار':price>upper?'اوپری بینڈ سے اوپر':price<lower?'نچلے بینڈ سے نیچے':'بینڈ کے اندر');
+    setText('stochText',stoch==null?'—':stoch.toFixed(1)+(stoch>80?' • زیادہ خریداری':stoch<20?' • زیادہ فروخت':''));
+    setText('candleText',bull?'Bullish (تیزی)':bear?'Bearish (مندی)':'Doji / برابر');
+    setText('support',fmt(support));setText('resistance',fmt(resistance));
+    setText('signal',signal);$('signal').className='signal '+(signal==='BUY'?'buy':signal==='SELL'?'sell':'wait');
+    setText('signalReason',reason);setText('agreement',votes.length?`${Math.round(Math.max(up,down)/votes.length*100)}% اشارے ایک طرف`:'—');
+    if(candleSeries){candleSeries.setData(candles);ema9Series.setData(e9.map((v,j)=>v==null?null:{time:candles[j].time,value:v}).filter(Boolean));ema21Series.setData(e21.map((v,j)=>v==null?null:{time:candles[j].time,value:v}).filter(Boolean));chart.timeScale().fitContent();}
+  }
+  async function load(){
+    setText('updated','ڈیٹا حاصل کیا جا رہا ہے…');
+    const interval=$('timeframe').value;
+    try{
+      const url='https://biquote.io/api/EURUSD/ohlc?interval='+encodeURIComponent(interval)+'&limit=200';
+      const response=await fetch(url,{cache:'no-store'});
+      if(!response.ok)throw new Error('ڈیٹا سورس نے HTTP '+response.status+' جواب دیا');
+      const json=await response.json(),candles=parseRows(json);
+      if(candles.length<30)throw new Error('کافی درست OHLC ڈیٹا نہیں ملا؛ سورس کا فارمیٹ یا دستیابی مسئلہ ہو سکتی ہے');
+      lastCandles=candles;analyze(candles);
+      setText('connection','ڈیٹا موصول ہوا');setText('dataState','ڈیٹا موصول ہوا');
+      setText('updated','آخری کامیاب اپ ڈیٹ: '+new Date().toLocaleTimeString());
+    }catch(e){
+      setText('connection','ڈیٹا دستیاب نہیں');setText('dataState','ڈیٹا نہیں ملا');
+      setText('updated','اپ ڈیٹ ناکام: '+e.message);
+      setText('signal','WAIT');$('signal').className='signal wait';
+      setText('signalReason','قابلِ اعتماد ڈیٹا نہیں ملا؛ کوئی سگنل جاری نہیں کیا گیا۔');
+      setText('priceTime','ڈیٹا سورس یا انٹرنیٹ چیک کریں۔');
+    }
+  }
+  initChart();
+  $('refresh').addEventListener('click',load);
+  $('timeframe').addEventListener('change',load);
+  load();
+  setInterval(load,60000);
+})();
+</script>
+</body>
+</html>
