@@ -1,0 +1,341 @@
+HTML
+
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QUOTEX FOREX SIGNAL PRO V10</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:12px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
+h2{text-align:center;color:#38bdf8}
+h3{color:#7dd3fc}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:13px;margin:10px 0}
+.price{font-size:29px;font-weight:bold;color:#4ade80;text-align:center}
+select,input,button{width:100%;padding:12px;margin:5px 0;border:1px solid #475569;border-radius:8px;background:#0f172a;color:white;font-size:15px}
+button{background:#0284c7;border:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.item{background:#0f172a;padding:10px;border-radius:8px;font-size:13px}
+.item b{display:block;color:#38bdf8;margin-top:6px;overflow-wrap:anywhere}
+.signal{text-align:center;font-size:30px;font-weight:bold}
+.buy{color:#4ade80}.sell{color:#fb7185}.wait{color:#facc15}
+.small{font-size:12px;color:#94a3b8;line-height:1.6}
+canvas{width:100%;height:300px;background:#0b1220;border-radius:8px}
+</style>
+</head>
+<body>
+
+<h2>QUOTEX FOREX SIGNAL PRO V10</h2>
+
+<div class="card">
+<h3>مارکیٹ منتخب کریں</h3>
+<select id="symbol">
+<option>EUR/USD</option><option>GBP/USD</option>
+<option>USD/JPY</option><option>AUD/USD</option>
+<option>USD/CAD</option><option>USD/CHF</option>
+<option>NZD/USD</option><option>EUR/JPY</option>
+</select>
+
+<div class="small">API سے موصولہ قیمت</div>
+<div class="price" id="price">—</div>
+<p class="small" id="status">ڈیٹا لوڈ ہو رہا ہے...</p>
+
+<label class="small">اپنی Quotex پر دکھائی جانے والی اسی جوڑے کی قیمت درج کریں</label>
+<input id="quote" type="number" step="any" placeholder="مثلاً 1.12750">
+<p class="small" id="difference">قیمت کا موازنہ ابھی نہیں ہوا۔</p>
+
+<label class="small">Timeframe</label>
+<select id="tf">
+<option value="1min">1 Minute</option>
+<option value="5min" selected>5 Minutes</option>
+<option value="15min">15 Minutes</option>
+<option value="30min">30 Minutes</option>
+<option value="1h">1 Hour</option>
+</select>
+<button id="refresh">Refresh Now</button>
+<p class="small" id="updated">آخری اپ ڈیٹ: —</p>
+</div>
+
+<div class="card">
+<h3>Candlestick Chart</h3>
+<canvas id="chart"></canvas>
+<p class="small">سبز Bullish | سرخ Bearish | EMA 9/21/50</p>
+</div>
+
+<div class="card">
+<h3>Market Signal</h3>
+<div id="signal" class="signal wait">WAIT</div>
+<p id="reason" class="small">ڈیٹا کی تصدیق جاری ہے۔</p>
+<div class="grid">
+<div class="item">BUY Score<b id="buy">—</b></div>
+<div class="item">SELL Score<b id="sell">—</b></div>
+<div class="item">Trend<b id="trend">—</b></div>
+<div class="item">Candle<b id="pattern">—</b></div>
+<div class="item">Strength<b id="strength">—</b></div>
+<div class="item">Candles<b id="total">—</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Moving Averages</h3>
+<div class="grid">
+<div class="item">EMA 9<b id="ema9">—</b></div>
+<div class="item">EMA 21<b id="ema21">—</b></div>
+<div class="item">EMA 50<b id="ema50">—</b></div>
+<div class="item">EMA 200<b id="ema200">—</b></div>
+<div class="item">SMA 20<b id="sma20">—</b></div>
+<div class="item">SMA 50<b id="sma50">—</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Momentum Indicators</h3>
+<div class="grid">
+<div class="item">RSI 14<b id="rsi">—</b></div>
+<div class="item">MACD<b id="macd">—</b></div>
+<div class="item">MACD Signal<b id="macds">—</b></div>
+<div class="item">Stochastic<b id="stoch">—</b></div>
+<div class="item">CCI 20<b id="cci">—</b></div>
+<div class="item">Williams %R<b id="will">—</b></div>
+<div class="item">ROC 10<b id="roc">—</b></div>
+<div class="item">Momentum 10<b id="mom">—</b></div>
+<div class="item">ATR 14<b id="atr">—</b></div>
+<div class="item">OBV<b id="obv">—</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Volatility & Market Levels</h3>
+<div class="grid">
+<div class="item">BB Upper<b id="bbup">—</b></div>
+<div class="item">BB Middle<b id="bbmid">—</b></div>
+<div class="item">BB Lower<b id="bblow">—</b></div>
+<div class="item">Support<b id="support">—</b></div>
+<div class="item">Resistance<b id="resistance">—</b></div>
+<div class="item">Pivot<b id="pivot">—</b></div>
+<div class="item">Fib 38.2%<b id="fib38">—</b></div>
+<div class="item">Fib 61.8%<b id="fib61">—</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Historical Backtest</h3>
+<div class="grid">
+<div class="item">Tested<b id="btTotal">—</b></div>
+<div class="item">Successful<b id="btWin">—</b></div>
+<div class="item">Failed<b id="btLoss">—</b></div>
+<div class="item">Historical Rate<b id="btRate">—</b></div>
+</div>
+<p class="small">3-candle historical test؛ spread، fees اور slippage شامل نہیں۔ مستقبل کی ضمانت نہیں۔</p>
+</div>
+
+<div class="card small">
+<b>اہم:</b> یہ صرف تعلیمی تجزیہ اور Demo Testing کے لیے ہے۔ خودکار ٹریڈ نہیں کھولتی۔ API کا ڈیٹا Quotex سے مختلف ہو سکتا ہے۔ Symbol یا قیمت کی تصدیق ناکام ہو تو سگنل WAIT رہے گا۔
+</div>
+
+<script>
+"use strict";
+const API="https://quotex-signal-api-v3.khurambasha40.workers.dev/";
+const $=id=>document.getElementById(id);
+let candles=[],busy=false,verified=false,lastSymbol="";
+const symbols=["EUR/USD","GBP/USD","USD/JPY","AUD/USD","USD/CAD","USD/CHF","NZD/USD","EUR/JPY"];
+const fmt=x=>Number.isFinite(x)?x.toFixed(5):"—";
+const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN;
+function show(id,v){$(id).textContent=v===null||v===undefined?"—":v}
+function norm(s){return String(s||"").replace(/[^A-Z]/gi,"").toUpperCase()}
+function sma(a,p){
+ let o=Array(a.length).fill(null);
+ for(let i=p-1;i<a.length;i++)o[i]=avg(a.slice(i-p+1,i+1));
+ return o;
+}
+function ema(a,p){
+ let o=Array(a.length).fill(null);if(a.length<p)return o;
+ let v=avg(a.slice(0,p)),k=2/(p+1);o[p-1]=v;
+ for(let i=p;i<a.length;i++){v=a[i]*k+v*(1-k);o[i]=v}
+ return o;
+}
+function rsi(a,p=14){
+ let o=Array(a.length).fill(null);if(a.length<=p)return o;
+ let g=0,l=0;
+ for(let i=1;i<=p;i++){let d=a[i]-a[i-1];if(d>0)g+=d;else l-=d}
+ g/=p;l/=p;o[p]=l===0?100:100-100/(1+g/l);
+ for(let i=p+1;i<a.length;i++){
+ let d=a[i]-a[i-1];g=(g*(p-1)+Math.max(d,0))/p;
+ l=(l*(p-1)+Math.max(-d,0))/p;o[i]=l===0?100:100-100/(1+g/l)}
+ return o;
+}
+function macd(a){
+ let e12=ema(a,12),e26=ema(a,26);
+ let line=a.map((_,i)=>e12[i]!==null&&e26[i]!==null?e12[i]-e26[i]:null);
+ let first=line.findIndex(x=>x!==null),signal=Array(a.length).fill(null);
+ if(first>=0){let es=ema(line.slice(first),9);for(let i=first;i<a.length;i++)signal[i]=es[i-first]}
+ return {line,signal};
+}
+function atr(c,p=14){
+ let tr=c.map((x,i)=>i===0?x.high-x.low:Math.max(x.high-x.low,Math.abs(x.high-c[i-1].close),Math.abs(x.low-c[i-1].close)));
+ let o=Array(c.length).fill(null);if(c.length<p)return o;
+ let v=avg(tr.slice(0,p));o[p-1]=v;
+ for(let i=p;i<c.length;i++){v=(v*(p-1)+tr[i])/p;o[i]=v}return o;
+}
+function bands(a,p=20){
+ let mid=sma(a,p),up=[],low=[];
+ for(let i=0;i<a.length;i++){
+ if(mid[i]===null){up.push(null);low.push(null);continue}
+ let s=a.slice(i-p+1,i+1),sd=Math.sqrt(avg(s.map(x=>(x-mid[i])**2)));
+ up.push(mid[i]+2*sd);low.push(mid[i]-2*sd)}
+ return {mid,up,low};
+}
+function stochastic(c,p=14){
+ let o=Array(c.length).fill(null);
+ for(let i=p-1;i<c.length;i++){let s=c.slice(i-p+1,i+1),h=Math.max(...s.map(x=>x.high)),l=Math.min(...s.map(x=>x.low));o[i]=h===l?50:100*(c[i].close-l)/(h-l)}
+ return o;
+}
+function cci(c,p=20){
+ let t=c.map(x=>(x.high+x.low+x.close)/3),o=Array(c.length).fill(null);
+ for(let i=p-1;i<c.length;i++){let s=t.slice(i-p+1,i+1),m=avg(s),d=avg(s.map(x=>Math.abs(x-m)));o[i]=d===0?0:(t[i]-m)/(.015*d)}
+ return o;
+}
+function williams(c,p=14){
+ let o=Array(c.length).fill(null);
+ for(let i=p-1;i<c.length;i++){let s=c.slice(i-p+1,i+1),h=Math.max(...s.map(x=>x.high)),l=Math.min(...s.map(x=>x.low));o[i]=h===l?-50:-100*(h-c[i].close)/(h-l)}
+ return o;
+}
+function analyze(c){
+ let a=c.map(x=>x.close),i=a.length-1;
+ let e9=ema(a,9),e21=ema(a,21),e50=ema(a,50),e200=ema(a,200);
+ let s20=sma(a,20),s50=sma(a,50),r=rsi(a),m=macd(a),t=atr(c),bb=bands(a),st=stochastic(c),cc=cci(c),wr=williams(c);
+ let buy=0,sell=0;
+ function add(ok,side,n=1){if(ok){if(side==="B")buy+=n;else sell+=n}}
+ add(e9[i]!==null&&e21[i]!==null&&e9[i]>e21[i],"B",2);
+ add(e9[i]!==null&&e21[i]!==null&&e9[i]<e21[i],"S",2);
+ add(e50[i]!==null&&a[i]>e50[i],"B");add(e50[i]!==null&&a[i]<e50[i],"S");
+ add(e200[i]!==null&&a[i]>e200[i],"B");add(e200[i]!==null&&a[i]<e200[i],"S");
+ add(r[i]!==null&&r[i]>52&&r[i]<70,"B");add(r[i]!==null&&r[i]<48&&r[i]>30,"S");
+ add(m.line[i]!==null&&m.signal[i]!==null&&m.line[i]>m.signal[i],"B");
+ add(m.line[i]!==null&&m.signal[i]!==null&&m.line[i]<m.signal[i],"S");
+ add(s20[i]!==null&&a[i]>s20[i],"B");add(s20[i]!==null&&a[i]<s20[i],"S");
+ add(st[i]!==null&&st[i]>55&&st[i]<80,"B");add(st[i]!==null&&st[i]<45&&st[i]>20,"S");
+ add(cc[i]!==null&&cc[i]>50,"B");add(cc[i]!==null&&cc[i]<-50,"S");
+ let signal="WAIT",reason="اشارے متفق نہیں؛ انتظار کریں۔";
+ if(buy>=5&&buy>=sell+3){signal="BUY";reason="کئی اشارے تیزی کی حمایت کرتے ہیں۔"}
+ if(sell>=5&&sell>=buy+3){signal="SELL";reason="کئی اشارے مندی کی حمایت کرتے ہیں۔"}
+ let recent=c.slice(-50),hi=Math.max(...recent.map(x=>x.high)),lo=Math.min(...recent.map(x=>x.low)),x=c[i];
+ let pivot=(x.high+x.low+x.close)/3;
+ let up=0,dn=0;for(let j=Math.max(1,c.length-30);j<c.length;j++){if(c[j].close>c[j-1].close)up++;if(c[j].close<c[j-1].close)dn++}
+ return {e9,e21,e50,e200,s20,s50,r,m,t,bb,st,cc,wr,buy,sell,signal,reason,
+ trend:e21[i]!==null&&e50[i]!==null?(e21[i]>e50[i]?"Bullish تیزی":"Bearish مندی"):"ناکافی",
+ pattern:x.close>x.open?"Bullish":x.close<x.open?"Bearish":"Doji",
+ support:lo,resistance:hi,pivot,fib38:hi-(hi-lo)*.382,fib61:hi-(hi-lo)*.618,
+ roc:i>=10?(a[i]-a[i-10])/a[i-10]*100:null,mom:i>=10?a[i]-a[i-10]:null,obv:up>dn?"مثبت":dn>up?"منفی":"غیر واضح"};
+}
+function draw(c,r){
+ let cv=$("chart"),rect=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;
+ cv.width=Math.max(1,rect.width*d);cv.height=300*d;
+ let ctx=cv.getContext("2d");ctx.setTransform(d,0,0,d,0,0);
+ let w=rect.width,h=300;ctx.clearRect(0,0,w,h);
+ let data=c.slice(-65),off=c.length-data.length,all=[];
+ data.forEach(x=>all.push(x.high,x.low));
+ [r.e9,r.e21,r.e50].forEach(a=>a.slice(off).forEach(v=>{if(Number.isFinite(v))all.push(v)}));
+ let mn=Math.min(...all),mx=Math.max(...all),pad=(mx-mn)*.12||.0001;mn-=pad;mx+=pad;
+ let y=v=>h-12-(v-mn)/(mx-mn)*(h-24),step=w/data.length,body=Math.max(2,step*.55);
+ data.forEach((x,j)=>{let xx=j*step+step/2,col=x.close>=x.open?"#22c55e":"#f43f5e";
+ ctx.strokeStyle=col;ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(xx,y(x.high));ctx.lineTo(xx,y(x.low));ctx.stroke();
+ let top=y(Math.max(x.open,x.close)),bot=y(Math.min(x.open,x.close));ctx.fillRect(xx-body/2,top,body,Math.max(1,bot-top))});
+ function line(a,col){ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=1.4;let started=false;
+ a.slice(off).forEach((v,j)=>{if(!Number.isFinite(v)){started=false;return}let xx=j*step+step/2;if(!started){ctx.moveTo(xx,y(v));started=true}else ctx.lineTo(xx,y(v))});ctx.stroke()}
+ line(r.e9,"#38bdf8");line(r.e21,"#facc15");line(r.e50,"#c084fc");
+}
+function paint(c){
+ let r=analyze(c),i=c.length-1;
+ show("price",fmt(c[i].close));show("buy",r.buy);show("sell",r.sell);
+ show("trend",r.trend);show("pattern",r.pattern);show("total",c.length);
+ show("strength",Math.max(r.buy,r.sell)>=8?"مضبوط":"درمیانی");
+ [["ema9","e9"],["ema21","e21"],["ema50","e50"],["ema200","e200"],["sma20","s20"],["sma50","s50"]].forEach(([id,k])=>show(id,fmt(r[k][i])));
+ show("rsi",fmt(r.r[i]));show("macd",fmt(r.m.line[i]));show("macds",fmt(r.m.signal[i]));
+ show("stoch",fmt(r.st[i]));show("cci",fmt(r.cc[i]));show("will",fmt(r.wr[i]));
+ show("roc",r.roc===null?"—":r.roc.toFixed(3)+"%");
+ show("mom",fmt(r.mom));show("atr",fmt(r.t[i]));show("obv",r.obv);
+ show("bbup",fmt(r.bb.up[i]));show("bbmid",fmt(r.bb.mid[i]));show("bblow",fmt(r.bb.low[i]));
+ ["support","resistance","pivot","fib38","fib61"].forEach(k=>show(k,fmt(r[k])));
+ $("signal").textContent=r.signal;$("signal").className="signal "+(r.signal==="BUY"?"buy":r.signal==="SELL"?"sell":"wait");
+ show("reason",r.reason);draw(c,r);
+}
+function parseCandles(json){
+ let v=json.values||json.data||json.candles;
+ if(!Array.isArray(v))throw Error("API کا OHLC فارمیٹ درست نہیں۔");
+ let a=v.map(x=>({time:x.datetime||x.time||x.date||"",open:Number(x.open),high:Number(x.high),low:Number(x.low),close:Number(x.close)}))
+ .filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite)&&x.open>0&&x.low>0&&x.high>=Math.max(x.open,x.close)&&x.low<=Math.min(x.open,x.close));
+ a.sort((x,y)=>new Date(x.time)-new Date(y.time));
+ return a.filter((x,i)=>!i||x.time!==a[i-1].time);
+}
+function resetBacktest(){["btTotal","btWin","btLoss","btRate"].forEach(x=>show(x,"—"))}
+function compareQuote(){
+ verified=false;
+ let q=Number($("quote").value),p=candles.length?candles[candles.length-1].close:NaN,s=$("symbol").value;
+ if(!Number.isFinite(q)||q<=0){$("difference").textContent="Quotex قیمت درج کریں؛ سگنل بند ہے۔";lockSignal();return}
+ let pip=s.includes("JPY")?.01:.0001,diff=Math.abs(q-p)/pip;
+ $("difference").textContent="Quotex اور API فرق: "+diff.toFixed(1)+" pips";
+ if(diff>5){$("difference").textContent+=" — فرق زیادہ ہے؛ سگنل بند۔";lockSignal();return}
+ verified=true;
+ $("difference").textContent+=" — قیمتیں قریب ہیں۔ Demo پر تصدیق کریں۔";
+ let r=analyze(candles);
+ $("signal").textContent=r.signal;$("signal").className="signal "+(r.signal==="BUY"?"buy":r.signal==="SELL"?"sell":"wait");
+ $("reason").textContent=r.reason;
+}
+function lockSignal(){
+ $("signal").textContent="WAIT";$("signal").className="signal wait";
+ $("reason").textContent="قیمت یا ڈیٹا کی تصدیق نہیں ہوئی؛ کوئی سگنل جاری نہیں۔";
+}
+async function loadData(){
+ if(busy)return;busy=true;verified=false;lockSignal();
+ const symbol=$("symbol").value,interval=$("tf").value;
+ $("price").textContent="—";$("status").textContent=symbol+" ڈیٹا حاصل ہو رہا ہے...";
+ $("difference").textContent="Quotex قیمت درج کریں۔";
+ try{
+ const url=API+"?symbol="+encodeURIComponent(symbol)+"&interval="+encodeURIComponent(interval)+"&outputsize=500";
+ const res=await fetch(url,{cache:"no-store"});
+ if(!res.ok)throw Error("Server error "+res.status);
+ const json=await res.json();
+ const returned=json?.meta?.symbol||json?.metadata?.symbol||json?.symbol||"";
+ if(!returned||norm(returned)!==norm(symbol))
+ throw Error("API منتخب "+symbol+" کی تصدیق نہیں کر سکی۔ موصولہ Symbol: "+(returned||"نامعلوم"));
+ const a=parseCandles(json);
+ if(a.length<205)throw Error("200 EMA اور مکمل تجزیے کے لیے کافی candles نہیں ملیں۔");
+ const sig=a.slice(-5).map(x=>[x.open,x.high,x.low,x.close].join(",")).join("|");
+ for(const other of symbols){
+ if(other!==symbol&&sessionStorage.getItem("v10_"+other)===sig)
+ throw Error("دوسرے جوڑے جیسا ہی OHLC ڈیٹا ملا؛ ممکنہ غلط ڈیٹا۔");
+ }
+ sessionStorage.setItem("v10_"+symbol,sig);
+ candles=a;lastSymbol=symbol;paint(a);
+ $("status").textContent="تصدیق شدہ Symbol: "+returned+" | "+a.length+" candles | "+interval;
+ $("updated").textContent="آخری وصولی: "+new Date().toLocaleString();
+ runBacktest();
+ if($("quote").value)compareQuote();
+ }catch(e){
+ candles=[];$("price").textContent="—";$("status").textContent="DATA ERROR: "+e.message;
+ lockSignal();resetBacktest();
+ }
+ finally{busy=false}
+}
+function runBacktest(){
+ if(candles.length<210){resetBacktest();return}
+ let total=0,win=0,loss=0,h=3;
+ for(let i=205;i<candles.length-h;i++){
+ let r=analyze(candles.slice(0,i+1));if(r.signal==="WAIT")continue;
+ let a=candles[i].close,b=candles[i+h].close;if(a===b)continue;
+ total++;if((r.signal==="BUY"&&b>a)||(r.signal==="SELL"&&b<a))win++;else loss++;
+ }
+ show("btTotal",total);show("btWin",win);show("btLoss",loss);
+ show("btRate",total?(win/total*100).toFixed(1)+"%":"ناکافی");
+}
+$("refresh").addEventListener("click",loadData);
+$("symbol").addEventListener("change",()=>{$("quote").value="";loadData()});
+$("tf").addEventListener("change",()=>{$("quote").value="";loadData()});
+$("quote").addEventListener("input",()=>{if(candles.length)compareQuote()});
+loadData();
+setInterval(()=>{if(!document.hidden)loadData()},60000);
+</script>
+</body>
+</html>
