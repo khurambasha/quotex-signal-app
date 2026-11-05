@@ -1,5 +1,4 @@
 HTML
-
 <!DOCTYPE html>
 <html lang="ur">
 <head>
@@ -8,25 +7,20 @@ HTML
 <title>EUR/USD Signal Pro V8</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:13px;background:#0b1220;color:#f1f5f9;font-family:Arial,sans-serif}
+body{margin:0;padding:12px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
 h2{text-align:center;color:#38bdf8}
-h3{color:#38bdf8;margin:5px 0 12px}
-.card{background:#172338;border:1px solid #334155;border-radius:13px;padding:14px;margin:12px 0}
-.price{text-align:center;font-size:32px;font-weight:bold;color:#38bdf8;padding:10px}
-.muted,.small{color:#a5b4c7;font-size:13px;line-height:1.7}
-select,button{width:100%;padding:13px;border:0;border-radius:9px;font-size:16px;margin-top:9px}
-select{background:#26364f;color:white}
-button{background:#0284c7;color:white;font-weight:bold}
-.signal{text-align:center;font-size:30px;font-weight:bold;padding:10px}
-.buy,.good{color:#4ade80}.sell,.bad{color:#fb7185}.wait{color:#facc15}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.ind{background:#0e1a2c;border:1px solid #334155;border-radius:9px;padding:11px;min-width:0}
-.ind small{display:block;color:#a5b4c7;margin-bottom:7px}
-.ind strong{font-size:15px;overflow-wrap:anywhere}
-canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9px}
-.row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #334155}
-.row:last-child{border:0}
-.row b{text-align:right;overflow-wrap:anywhere}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:13px;margin:10px 0}
+.price{font-size:29px;font-weight:bold;color:#4ade80;text-align:center}
+button,select{padding:11px;border:0;border-radius:8px;background:#0284c7;color:white;font-size:15px;margin:4px}
+button:active{opacity:.7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.item{background:#0f172a;padding:10px;border-radius:8px;margin:3px 0}
+.item b{display:block;color:#38bdf8;margin-top:5px;overflow-wrap:anywhere}
+.signal{text-align:center;font-size:27px;font-weight:bold}
+.buy{color:#4ade80}.sell{color:#fb7185}.wait{color:#facc15}
+.small{font-size:12px;color:#94a3b8}
+canvas{width:100%;height:330px;background:#0b1220;border-radius:8px}
+h3{color:#7dd3fc}
 </style>
 </head>
 <body>
@@ -34,391 +28,494 @@ canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9p
 <h2>EUR/USD Signal Pro V8</h2>
 
 <div class="card">
- <div class="muted" style="text-align:center">EUR/USD موجودہ قیمت</div>
- <div class="price" id="price">---</div>
- <div class="muted" id="status" style="text-align:center">ڈیٹا لوڈ ہو رہا ہے...</div>
- <label>Timeframe</label>
- <select id="tf">
-  <option value="1min">1 Minute</option>
-  <option value="5min" selected>5 Minutes</option>
-  <option value="15min">15 Minutes</option>
-  <option value="30min">30 Minutes</option>
-  <option value="1h">1 Hour</option>
- </select>
- <button onclick="loadData()">تازہ ڈیٹا حاصل کریں</button>
+<h3>EUR/USD موجودہ قیمت</h3>
+<div class="price" id="price">---</div>
+<p id="status" class="small">مارکیٹ ڈیٹا لوڈ ہو رہا ہے...</p>
+<label>Timeframe</label><br>
+<select id="tf">
+<option value="1min">1 Minute</option>
+<option value="5min" selected>5 Minutes</option>
+<option value="15min">15 Minutes</option>
+<option value="30min">30 Minutes</option>
+<option value="1h">1 Hour</option>
+</select>
+<button onclick="loadData()">تازہ ڈیٹا حاصل کریں</button>
 </div>
 
 <div class="card">
- <h3>EUR/USD Candle Chart</h3>
- <canvas id="chart"></canvas>
- <div class="small" id="chartinfo">چارٹ ڈیٹا کا انتظار ہے</div>
+<h3>EUR/USD Candle Chart</h3>
+<canvas id="chart"></canvas>
+<p class="small">Candles: سرخ = نیچے، سبز = اوپر</p>
+<p class="small">لائنیں: EMA 9، EMA 21، EMA 50، SMA 20، Bollinger Bands</p>
 </div>
 
 <div class="card">
- <h3>Market Signal</h3>
- <div id="signal" class="signal wait">WAIT</div>
- <div id="reason" class="muted">تجزیہ جاری ہے</div>
- <div class="row"><span>BUY Score</span><b id="bs">---</b></div>
- <div class="row"><span>SELL Score</span><b id="ss">---</b></div>
- <div class="row"><span>Market Trend</span><b id="trend">---</b></div>
- <div class="row"><span>Candle Pattern</span><b id="pattern">---</b></div>
- <div class="row"><span>Signal Strength</span><b id="strength">---</b></div>
+<h3>Market Signal</h3>
+<div id="signal" class="signal wait">WAIT</div>
+<p id="reason" style="text-align:center">تجزیہ جاری ہے</p>
+<div class="grid">
+<div class="item">BUY Score<b id="buyScore">---</b></div>
+<div class="item">SELL Score<b id="sellScore">---</b></div>
+<div class="item">Market Trend<b id="trend">---</b></div>
+<div class="item">Candle Pattern<b id="pattern">---</b></div>
+<div class="item">Signal Strength<b id="strength">---</b></div>
+</div>
 </div>
 
 <div class="card">
- <h3>Moving Averages</h3>
- <div class="grid">
-  <div class="ind"><small>EMA 9</small><strong id="e9">---</strong></div>
-  <div class="ind"><small>EMA 21</small><strong id="e21">---</strong></div>
-  <div class="ind"><small>EMA 50</small><strong id="e50">---</strong></div>
-  <div class="ind"><small>EMA 200</small><strong id="e200">---</strong></div>
-  <div class="ind"><small>SMA 20</small><strong id="sma20">---</strong></div>
-  <div class="ind"><small>SMA 50</small><strong id="sma50">---</strong></div>
- </div>
+<h3>Moving Averages</h3>
+<div class="grid">
+<div class="item">EMA 9<b id="ema9">---</b></div>
+<div class="item">EMA 21<b id="ema21">---</b></div>
+<div class="item">EMA 50<b id="ema50">---</b></div>
+<div class="item">EMA 200<b id="ema200">---</b></div>
+<div class="item">SMA 20<b id="sma20">---</b></div>
+<div class="item">SMA 50<b id="sma50">---</b></div>
+</div>
 </div>
 
 <div class="card">
- <h3>Momentum Indicators</h3>
- <div class="grid">
-  <div class="ind"><small>RSI 14</small><strong id="rsi">---</strong></div>
-  <div class="ind"><small>MACD</small><strong id="macd">---</strong></div>
-  <div class="ind"><small>ADX Estimate</small><strong id="adx">---</strong></div>
-  <div class="ind"><small>Stochastic</small><strong id="stoch">---</strong></div>
-  <div class="ind"><small>CCI 20</small><strong id="cci">---</strong></div>
-  <div class="ind"><small>Williams %R</small><strong id="williams">---</strong></div>
-  <div class="ind"><small>ROC 10</small><strong id="roc">---</strong></div>
-  <div class="ind"><small>Momentum 10</small><strong id="momentum">---</strong></div>
-  <div class="ind"><small>ATR 14</small><strong id="atr">---</strong></div>
-  <div class="ind"><small>OBV Direction</small><strong id="obv">---</strong></div>
- </div>
+<h3>Momentum Indicators</h3>
+<div class="grid">
+<div class="item">RSI 14<b id="rsi">---</b></div>
+<div class="item">MACD<b id="macd">---</b></div>
+<div class="item">MACD Signal<b id="macds">---</b></div>
+<div class="item">ADX Estimate<b id="adx">---</b></div>
+<div class="item">Stochastic<b id="stoch">---</b></div>
+<div class="item">CCI 20<b id="cci">---</b></div>
+<div class="item">Williams %R<b id="will">---</b></div>
+<div class="item">ROC 10<b id="roc">---</b></div>
+<div class="item">Momentum 10<b id="mom">---</b></div>
+<div class="item">ATR 14<b id="atr">---</b></div>
+<div class="item">OBV Direction<b id="obv">---</b></div>
+</div>
 </div>
 
 <div class="card">
- <h3>Volatility & Levels</h3>
- <div class="grid">
-  <div class="ind"><small>Bollinger Upper</small><strong id="bbup">---</strong></div>
-  <div class="ind"><small>Bollinger Middle</small><strong id="bbmid">---</strong></div>
-  <div class="ind"><small>Bollinger Lower</small><strong id="bblow">---</strong></div>
-  <div class="ind"><small>Support</small><strong id="support">---</strong></div>
-  <div class="ind"><small>Resistance</small><strong id="resistance">---</strong></div>
-  <div class="ind"><small>Pivot Point</small><strong id="pivot">---</strong></div>
-  <div class="ind"><small>Fib 38.2%</small><strong id="fib38">---</strong></div>
-  <div class="ind"><small>Fib 61.8%</small><strong id="fib61">---</strong></div>
- </div>
- <div class="row"><span>Last Closed Candle</span><b id="candle">---</b></div>
- <div class="row"><span>Total Candles</span><b id="count">---</b></div>
+<h3>Volatility & Levels</h3>
+<div class="grid">
+<div class="item">Bollinger Upper<b id="bbup">---</b></div>
+<div class="item">Bollinger Middle<b id="bbmid">---</b></div>
+<div class="item">Bollinger Lower<b id="bblow">---</b></div>
+<div class="item">Support<b id="support">---</b></div>
+<div class="item">Resistance<b id="resistance">---</b></div>
+<div class="item">Pivot Point<b id="pivot">---</b></div>
+<div class="item">Fib 38.2%<b id="fib38">---</b></div>
+<div class="item">Fib 61.8%<b id="fib61">---</b></div>
+<div class="item">Last Closed Candle<b id="lastc">---</b></div>
+<div class="item">Total Candles<b id="total">---</b></div>
+</div>
 </div>
 
 <div class="card">
- <h3>Historical Backtesting</h3>
- <div class="row"><span>Total Tested Signals</span><b id="btTotal">---</b></div>
- <div class="row"><span>Successful</span><b class="good" id="btWin">---</b></div>
- <div class="row"><span>Failed</span><b class="bad" id="btLoss">---</b></div>
- <div class="row"><span>Historical Success Rate</span><b id="btRate">---</b></div>
- <div class="row"><span>1 Candle Result</span><b id="bt1">---</b></div>
- <div class="row"><span>3 Candles Result</span><b id="bt3">---</b></div>
- <div class="row"><span>5 Candles Result</span><b id="bt5">---</b></div>
- <button onclick="loadData()">Backtest Again</button>
- <div class="small">بیک ٹیسٹ میں spread، fees اور slippage شامل نہیں؛ نتائج مستقبل کی ضمانت نہیں ہیں۔</div>
+<h3>Historical Backtesting</h3>
+<div class="grid">
+<div class="item">Total Tested Signals<b id="btTotal">---</b></div>
+<div class="item">Successful<b id="btWin">---</b></div>
+<div class="item">Failed<b id="btLoss">---</b></div>
+<div class="item">Historical Success Rate<b id="btRate">---</b></div>
+</div>
+<p id="btNote" class="small">Backtest میں اگلی 3 candles کی حرکت دیکھی جاتی ہے۔</p>
+<button onclick="runBacktest()">Backtest Again</button>
+<p class="small">Backtest میں spread، fees اور slippage شامل نہیں؛ نتائج مستقبل کی ضمانت نہیں ہیں۔</p>
 </div>
 
 <div class="card small">
- <b>اہم وضاحت:</b><br>
- یہ تعلیمی تجزیہ ہے، مالی مشورہ نہیں۔ کوئی بھی سگنل کامیابی یا منافع کی ضمانت نہیں دیتا۔ پہلے Demo پر ٹیسٹ کریں۔ ایپ خودکار ٹریڈ نہیں کھولتی۔ کم یا خراب ڈیٹا پر WAIT دکھایا جائے گا۔
+<b>اہم وضاحت:</b><br>
+یہ تعلیمی تجزیہ ہے، مالی مشورہ نہیں۔ کوئی سگنل کامیابی یا منافع کی ضمانت نہیں دیتا۔ پہلے Demo پر ٹیسٹ کریں۔ ایپ خودکار ٹریڈ نہیں کھولتی۔ کم یا خراب ڈیٹا پر WAIT دکھایا جائے گا۔
 </div>
 
 <script>
 const API="https://quotex-signal-api-v3.khurambasha40.workers.dev/";
-const $=id=>document.getElementById(id);
 let candles=[];
-let lastAnalysis=null;
+let latest=null;
 
-function fmt(x){
- return Number.isFinite(x)?x.toFixed(5):"ڈیٹا ناکافی";
+function el(id){return document.getElementById(id)}
+function show(id,value){
+  el(id).textContent=value===null||value===undefined?"—":value;
 }
-function f1(x){
- return Number.isFinite(x)?x.toFixed(1):"ڈیٹا ناکافی";
+function fmt(v){
+  return Number.isFinite(v)?v.toFixed(5):"—";
 }
 function avg(a){
- return a.length?a.reduce((s,x)=>s+x,0)/a.length:NaN;
+  return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
 }
-function sma(a,p){
- return a.length>=p?avg(a.slice(-p)):NaN;
+function smaSeries(a,p){
+  let out=Array(a.length).fill(null);
+  for(let i=p-1;i<a.length;i++)out[i]=avg(a.slice(i-p+1,i+1));
+  return out;
 }
+
+/* درست EMA فارمولا */
 function emaSeries(a,p){
- let out=Array(a.length).fill(null);
- if(a.length<p)return out;
- let v=avg(a.slice(0,p));
- out[p-1]=v;
- const k=2/(p+1);
- for(let i=p;i<a.length;i++){
-  v=a[i]*k+a[i-1]*0+k*(a[i]-a[i-1])+(v-a[i-1])*(1-k);
-  out[i]=v;
- }
- return out;
+  let out=Array(a.length).fill(null);
+  if(a.length<p)return out;
+  let v=avg(a.slice(0,p));
+  out[p-1]=v;
+  const k=2/(p+1);
+  for(let i=p;i<a.length;i++){
+    v=a[i]*k+v*(1-k);
+    out[i]=v;
+  }
+  return out;
 }
-function rsi(a,p=14){
- if(a.length<=p)return NaN;
- let g=0,l=0;
- for(let i=a.length-p;i<a.length;i++){
-  let d=a[i]-a[i-1];
-  if(d>0)g+=d;else l-=d;
- }
- if(l===0)return 100;
- return 100-100/(1+g/l);
+
+function rsiSeries(a,p=14){
+  let out=Array(a.length).fill(null);
+  if(a.length<=p)return out;
+  let gain=0,loss=0;
+  for(let i=1;i<=p;i++){
+    let d=a[i]-a[i-1];
+    if(d>0)gain+=d;else loss-=d;
+  }
+  let ag=gain/p,al=loss/p;
+  out[p]=al===0?100:100-(100/(1+ag/al));
+  for(let i=p+1;i<a.length;i++){
+    let d=a[i]-a[i-1];
+    ag=(ag*(p-1)+Math.max(d,0))/p;
+    al=(al*(p-1)+Math.max(-d,0))/p;
+    out[i]=al===0?100:100-(100/(1+ag/al));
+  }
+  return out;
 }
-function macd(a){
- if(a.length<35)return NaN;
- return emaSeries(a,12).at(-1)-emaSeries(a,26).at(-1);
+
+function macdSeries(a){
+  let e12=emaSeries(a,12),e26=emaSeries(a,26);
+  let line=a.map((_,i)=>
+    Number.isFinite(e12[i])&&Number.isFinite(e26[i])?e12[i]-e26[i]:null
+  );
+  let valid=line.map(x=>x===null?NaN:x);
+  let first=valid.findIndex(Number.isFinite);
+  let signal=Array(a.length).fill(null);
+  if(first>=0){
+    let compact=valid.slice(first).filter(Number.isFinite);
+    let es=emaSeries(compact,9);
+    let j=0;
+    for(let i=first;i<a.length;i++){
+      if(Number.isFinite(valid[i]))signal[i]=es[j++];
+    }
+  }
+  return {line,signal};
 }
-function stochastic(c){
- let x=c.slice(-14);
- if(x.length<14)return NaN;
- let hi=Math.max(...x.map(v=>v.high));
- let lo=Math.min(...x.map(v=>v.low));
- return hi===lo?50:(x.at(-1).close-lo)/(hi-lo)*100;
+
+function trueRanges(c){
+  return c.map((x,i)=>{
+    if(i===0)return x.high-x.low;
+    let prev=c[i-1].close;
+    return Math.max(x.high-x.low,Math.abs(x.high-prev),Math.abs(x.low-prev));
+  });
 }
-function atr(c){
- if(c.length<15)return NaN;
- let tr=[];
- for(let i=1;i<c.length;i++){
-  let x=c[i],p=c[i-1];
-  tr.push(Math.max(x.high-x.low,Math.abs(x.high-p.close),Math.abs(x.low-p.close)));
- }
- return avg(tr.slice(-14));
+
+function atrSeries(c,p=14){
+  let tr=trueRanges(c),out=Array(c.length).fill(null);
+  if(c.length<p)return out;
+  let v=avg(tr.slice(0,p));
+  out[p-1]=v;
+  for(let i=p;i<c.length;i++){
+    v=(v*(p-1)+tr[i])/p;
+    out[i]=v;
+  }
+  return out;
 }
-function adx(c){
- if(c.length<16)return NaN;
- let plus=0,minus=0,tr=0;
- for(let i=c.length-14;i<c.length;i++){
-  let x=c[i],p=c[i-1];
-  let up=x.high-p.high,down=p.low-x.low;
-  if(up>down&&up>0)plus+=up;
-  if(down>up&&down>0)minus+=down;
-  tr+=Math.max(x.high-x.low,Math.abs(x.high-p.close),Math.abs(x.low-p.close));
- }
- if(!tr)return NaN;
- let p=plus/tr*100,m=minus/tr*100;
- return p+m?Math.abs(p-m)/(p+m)*100:0;
+
+function bollinger(a,p=20){
+  let mid=smaSeries(a,p),up=[],low=[];
+  for(let i=0;i<a.length;i++){
+    if(mid[i]===null){up.push(null);low.push(null);continue;}
+    let s=a.slice(i-p+1,i+1);
+    let variance=avg(s.map(x=>(x-mid[i])**2));
+    let sd=Math.sqrt(variance);
+    up.push(mid[i]+2*sd);
+    low.push(mid[i]-2*sd);
+  }
+  return {mid,up,low};
 }
-function cci(c){
- if(c.length<20)return NaN;
- let x=c.slice(-20).map(v=>(v.high+v.low+v.close)/3);
- let mean=avg(x),dev=avg(x.map(v=>Math.abs(v-mean)));
- return dev?(x.at(-1)-mean)/(.015*dev):0;
+
+function stochastic(c,p=14){
+  let out=Array(c.length).fill(null);
+  for(let i=p-1;i<c.length;i++){
+    let s=c.slice(i-p+1,i+1);
+    let hi=Math.max(...s.map(x=>x.high));
+    let lo=Math.min(...s.map(x=>x.low));
+    out[i]=hi===lo?50:100*(c[i].close-lo)/(hi-lo);
+  }
+  return out;
 }
-function williams(c){
- if(c.length<14)return NaN;
- let x=c.slice(-14),hi=Math.max(...x.map(v=>v.high)),lo=Math.min(...x.map(v=>v.low));
- return hi===lo?-50:(hi-x.at(-1).close)/(hi-lo)*-100;
+
+function cciSeries(c,p=20){
+  let tp=c.map(x=>(x.high+x.low+x.close)/3);
+  let out=Array(c.length).fill(null);
+  for(let i=p-1;i<c.length;i++){
+    let s=tp.slice(i-p+1,i+1),m=avg(s);
+    let md=avg(s.map(x=>Math.abs(x-m)));
+    out[i]=md===0?0:(tp[i]-m)/(0.015*md);
+  }
+  return out;
 }
-function roc(a,p=10){
- if(a.length<=p)return NaN;
- return (a.at(-1)-a[a.length-1-p])/a[a.length-1-p]*100;
+
+function williams(c,p=14){
+  let out=Array(c.length).fill(null);
+  for(let i=p-1;i<c.length;i++){
+    let s=c.slice(i-p+1,i+1);
+    let hi=Math.max(...s.map(x=>x.high));
+    let lo=Math.min(...s.map(x=>x.low));
+    out[i]=hi===lo?-50:-100*(hi-c[i].close)/(hi-lo);
+  }
+  return out;
 }
-function momentum(a,p=10){
- return a.length>p?a.at(-1)-a[a.length-1-p]:NaN;
+
+function obvDirection(c){
+  if(c.length<3)return "حجم دستیاب نہیں";
+  let up=0,down=0;
+  for(let i=1;i<c.length;i++){
+    if(c[i].close>c[i-1].close)up++;
+    else if(c[i].close<c[i-1].close)down++;
+  }
+  return up>down?"مثبت":down>up?"منفی":"غیر واضح";
 }
-function obv(c){
- if(c.length<3||!c.some(x=>Number.isFinite(x.volume)))return "حجم دستیاب نہیں";
- let v=0;
- for(let i=1;i<c.length;i++){
-  let vol=Number(c[i].volume)||0;
-  if(c[i].close>c[i-1].close)v+=vol;
-  else if(c[i].close<c[i-1].close)v-=vol;
- }
- return v>0?"مثبت":v<0?"منفی":"غیر واضح";
-}
-function pattern(c){
- if(c.length<2)return "ڈیٹا ناکافی";
- let x=c.at(-1),p=c.at(-2);
- let body=Math.abs(x.close-x.open);
- let range=x.high-x.low;
- let upper=x.high-Math.max(x.open,x.close);
- let lower=Math.min(x.open,x.close)-x.low;
- if(range>0&&body/range<.10)return "Doji";
- if(p.close<p.open&&x.close>x.open&&x.open<=p.close&&x.close>=p.open)return "Bullish Engulfing";
- if(p.close>p.open&&x.close<x.open&&x.open>=p.close&&x.close<=p.open)return "Bearish Engulfing";
- if(body>0&&lower>body*2&&upper<body)return "Bullish Pin Bar";
- if(body>0&&upper>body*2&&lower<body)return "Bearish Pin Bar";
- return x.close>x.open?"Bullish Candle":x.close<x.open?"Bearish Candle":"Neutral";
-}
+
 function analyze(c){
- const a=c.map(x=>x.close),last=c.at(-1);
- const e9=emaSeries(a,9),e21=emaSeries(a,21),e50=emaSeries(a,50),e200=emaSeries(a,200);
- const rv=rsi(a),m=macd(a),sv=stochastic(c),av=adx(c);
- const cv=cci(c),wv=williams(c),rocV=roc(a),mom=momentum(a);
- const atrV=atr(c);
- const recent=c.slice(-20);
- const mid=avg(recent.map(x=>x.close));
- const variance=avg(recent.map(x=>(x.close-mid)**2));
- const sd=Math.sqrt(variance);
- const high=Math.max(...recent.map(x=>x.high));
- const low=Math.min(...recent.map(x=>x.low));
- const prev=c.at(-2);
- const pivot=(prev.high+prev.low+prev.close)/3;
- const fib38=high-(high-low)*.382;
- const fib61=high-(high-low)*.618;
- const pat=pattern(c);
- let buy=0,sell=0;
+  let close=c.map(x=>x.close);
+  let e9=emaSeries(close,9);
+  let e21=emaSeries(close,21);
+  let e50=emaSeries(close,50);
+  let e200=emaSeries(close,200);
+  let s20=smaSeries(close,20);
+  let s50=smaSeries(close,50);
+  let rsi=rsiSeries(close);
+  let macd=macdSeries(close);
+  let atr=atrSeries(c);
+  let bb=bollinger(close);
+  let st=stochastic(c);
+  let cci=cciSeries(c);
+  let will=williams(c);
+  let i=c.length-1;
+  let last=c[i];
+  let prev=c[i-1];
+  let roc=i>=10?(close[i]-close[i-10])/close[i-10]*100:null;
+  let momentum=i>=10?close[i]-close[i-10]:null;
 
- if(Number.isFinite(e200.at(-1))){
-  if(last.close>e200.at(-1))buy+=2;else sell+=2;
- }
- if(e9.at(-1)>e21.at(-1))buy+=2;else sell+=2;
- if(Number.isFinite(e50.at(-1))){
-  if(e21.at(-1)>e50.at(-1))buy++;else sell++;
- }
- if(Number.isFinite(m)){
-  if(m>0)buy+=2;else sell+=2;
- }
- if(Number.isFinite(rv)){
-  if(rv>50&&rv<68)buy++;
-  if(rv<50&&rv>32)sell++;
-  if(rv>=70)sell++;
-  if(rv<=30)buy++;
- }
- if(Number.isFinite(sv)){
-  if(sv>50&&sv<80)buy++;
-  if(sv<50&&sv>20)sell++;
-  if(sv<=20)buy++;
-  if(sv>=80)sell++;
- }
- if(Number.isFinite(cv)){
-  if(cv>100)buy++;
-  if(cv< -100)sell++;
- }
- if(Number.isFinite(wv)){
-  if(wv> -50)buy++;
-  if(wv< -50)sell++;
- }
- if(Number.isFinite(rocV)){
-  if(rocV>0)buy++;else if(rocV<0)sell++;
- }
- if(Number.isFinite(mom)){
-  if(mom>0)buy++;else if(mom<0)sell++;
- }
- if(pat==="Bullish Engulfing"||pat==="Bullish Pin Bar")buy+=2;
- if(pat==="Bearish Engulfing"||pat==="Bearish Pin Bar")sell+=2;
- if(Number.isFinite(av)&&av>=20){
-  if(buy>sell)buy++;
-  else if(sell>buy)sell++;
- }
+  let high=Math.max(...c.slice(-50).map(x=>x.high));
+  let low=Math.min(...c.slice(-50).map(x=>x.low));
+  let pivot=(last.high+last.low+last.close)/3;
+  let fib38=high-(high-low)*0.382;
+  let fib61=high-(high-low)*0.618;
 
- let signal="WAIT",reason="اشارے واضح نہیں؛ انتظار بہتر ہے۔";
- if(c.length<200){
-  reason="200 کینڈلز سے کم ڈیٹا ہے؛ مضبوط تجزیے کے لیے مزید ڈیٹا درکار ہے۔";
- }else if(buy>=8&&buy-sell>=3){
-  signal="BUY";reason="کئی تکنیکی اشارے تیزی کی حمایت کر رہے ہیں۔ Demo پر تصدیق کریں۔";
- }else if(sell>=8&&sell-buy>=3){
-  signal="SELL";reason="کئی تکنیکی اشارے مندی کی حمایت کر رہے ہیں۔ Demo پر تصدیق کریں۔";
- }
+  let buy=0,sell=0;
+  const add=(condition,side,points=1)=>{
+    if(condition){if(side==="buy")buy+=points;else sell+=points;}
+  };
 
- return {e9,e21,e50,e200,rv,m,sv,av,cv,wv,rocV,mom,atrV,
-  upper:mid+2*sd,middle:mid,lower:mid-2*sd,high,low,pivot,
-  fib38,fib61,pat,buy,sell,signal,reason,last};
+  add(e9[i]!==null&&e21[i]!==null&&e9[i]>e21[i],"buy",2);
+  add(e9[i]!==null&&e21[i]!==null&&e9[i]<e21[i],"sell",2);
+  add(e50[i]!==null&&last.close>e50[i],"buy");
+  add(e50[i]!==null&&last.close<e50[i],"sell");
+  add(rsi[i]!==null&&rsi[i]>52&&rsi[i]<70,"buy");
+  add(rsi[i]!==null&&rsi[i]<48&&rsi[i]>30,"sell");
+  add(macd.line[i]!==null&&macd.signal[i]!==null&&macd.line[i]>macd.signal[i],"buy");
+  add(macd.line[i]!==null&&macd.signal[i]!==null&&macd.line[i]<macd.signal[i],"sell");
+  add(s20[i]!==null&&last.close>s20[i],"buy");
+  add(s20[i]!==null&&last.close<s20[i],"sell");
+  add(st[i]!==null&&st[i]>55&&st[i]<80,"buy");
+  add(st[i]!==null&&st[i]<45&&st[i]>20,"sell");
+
+  let signal="WAIT",reason="اشارے واضح نہیں؛ انتظار بہتر ہے۔";
+  if(buy>=4&&buy>=sell+2){signal="BUY";reason="کئی اشارے تیزی کی حمایت کر رہے ہیں۔";}
+  else if(sell>=4&&sell>=buy+2){signal="SELL";reason="کئی اشارے مندی کی حمایت کر رہے ہیں۔";}
+
+  let trend=e21[i]!==null&&e50[i]!==null?
+    (e21[i]>e50[i]?"Bullish تیزی":"Bearish مندی"):"ڈیٹا ناکافی";
+
+  let pattern=last.close>last.open?"Bullish Candle":
+    last.close<last.open?"Bearish Candle":"Doji";
+
+  return {
+    close,e9,e21,e50,e200,s20,s50,rsi,macd,atr,bb,st,cci,will,
+    roc,momentum,buy,sell,signal,reason,trend,pattern,
+    support:low,resistance:high,pivot,fib38,fib61,
+    obv:obvDirection(c)
+  };
 }
-function draw(c,r){
- const canvas=$("chart"),w=Math.max(canvas.clientWidth,280),h=280,dpr=devicePixelRatio||1;
- canvas.width=w*dpr;canvas.height=h*dpr;
- const ctx=canvas.getContext("2d");
- ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
- const d=c.slice(-65),lo0=Math.min(...d.map(x=>x.low)),hi0=Math.max(...d.map(x=>x.high));
- const pad=(hi0-lo0)*.1||.0001,lo=lo0-pad,hi=hi0+pad;
- const y=v=>h-15-(v-lo)/(hi-lo)*(h-30),step=w/d.length;
- d.forEach((x,i)=>{
-  const xx=i*step+step/2,color=x.close>=x.open?"#4ade80":"#fb7185";
-  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.moveTo(xx,y(x.high));ctx.lineTo(xx,y(x.low));ctx.stroke();
-  const top=y(Math.max(x.open,x.close)),bottom=y(Math.min(x.open,x.close));
-  ctx.fillRect(xx-step*.3,top,Math.max(1,step*.6),Math.max(2,bottom-top));
- });
- function line(s,color){
-  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;
-  let started=false,start=c.length-d.length;
-  for(let i=start;i<c.length;i++){
-   if(!Number.isFinite(s[i]))continue;
-   const x=(i-start)*step+step/2;
-   if(!started){ctx.moveTo(x,y(s[i]));started=true;}else ctx.lineTo(x,y(s[i]));
+
+function paint(r,c){
+  let i=c.length-1;
+  show("price",fmt(c[i].close));
+  show("ema9",fmt(r.e9[i]));
+  show("ema21",fmt(r.e21[i]));
+  show("ema50",fmt(r.e50[i]));
+  show("ema200",fmt(r.e200[i]));
+  show("sma20",fmt(r.s20[i]));
+  show("sma50",fmt(r.s50[i]));
+  show("rsi",fmt(r.rsi[i]));
+  show("macd",fmt(r.macd.line[i]));
+  show("macds",fmt(r.macd.signal[i]));
+  show("adx","تخمینی");
+  show("stoch",fmt(r.st[i]));
+  show("cci",fmt(r.cci[i]));
+  show("will",fmt(r.will[i]));
+  show("roc",r.roc===null?"—":r.roc.toFixed(3)+"%");
+  show("mom",fmt(r.momentum));
+  show("atr",fmt(r.atr[i]));
+  show("obv",r.obv);
+  show("bbup",fmt(r.bb.up[i]));
+  show("bbmid",fmt(r.bb.mid[i]));
+  show("bblow",fmt(r.bb.low[i]));
+  show("support",fmt(r.support));
+  show("resistance",fmt(r.resistance));
+  show("pivot",fmt(r.pivot));
+  show("fib38",fmt(r.fib38));
+  show("fib61",fmt(r.fib61));
+  show("lastc",r.pattern);
+  show("total",c.length);
+  show("buyScore",r.buy);
+  show("sellScore",r.sell);
+  show("trend",r.trend);
+  show("pattern",r.pattern);
+  show("strength",r.signal==="WAIT"?"کمزور / WAIT":(Math.max(r.buy,r.sell)>=7?"مضبوط":"درمیانی"));
+
+  el("signal").textContent=r.signal;
+  el("signal").className="signal "+(r.signal==="BUY"?"buy":r.signal==="SELL"?"sell":"wait");
+  show("reason",r.reason);
+  drawChart(c,r);
+}
+
+function drawChart(c,r){
+  const canvas=el("chart");
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,Math.floor(rect.width*dpr));
+  canvas.height=Math.max(1,Math.floor(rect.height*dpr));
+  const ctx=canvas.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const w=rect.width,h=rect.height;
+  ctx.clearRect(0,0,w,h);
+
+  let data=c.slice(-65);
+  let offset=c.length-data.length;
+  let all=[];
+  data.forEach(x=>all.push(x.high,x.low));
+  [r.e9,r.e21,r.e50,r.s20,r.bb.up,r.bb.low].forEach(a=>{
+    a.slice(offset).forEach(v=>{if(Number.isFinite(v))all.push(v);});
+  });
+  let min=Math.min(...all),max=Math.max(...all);
+  let pad=(max-min)*0.12||0.0001;
+  min-=pad;max+=pad;
+  const y=v=>h-15-(v-min)/(max-min)*(h-30);
+  const step=w/data.length;
+  const body=Math.max(2,step*.55);
+
+  ctx.strokeStyle="#263449";
+  ctx.lineWidth=1;
+  for(let k=1;k<5;k++){
+    let yy=h*k/5;
+    ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke();
   }
-  ctx.stroke();
- }
- line(r.e9,"#38bdf8");line(r.e21,"#facc15");line(r.e50,"#c084fc");
- $("chartinfo").textContent="آخری "+d.length+" کینڈلز | EMA 9، 21، 50";
-}
-function put(id,v){$(id).textContent=v;}
-function show(c){
- const r=analyze(c);lastAnalysis=r;
- put("price",fmt(r.last.close));
- ["e9","e21","e50","e200"].forEach((id,i)=>put(id,fmt([r.e9.at(-1),r.e21.at(-1),r.e50.at(-1),r.e200.at(-1)][i])));
- put("sma20",fmt(sma(c.map(x=>x.close),20)));
- put("sma50",fmt(sma(c.map(x=>x.close),50)));
- put("rsi",f1(r.rv));put("macd",fmt(r.m));put("adx",f1(r.av));
- put("stoch",f1(r.sv));put("cci",f1(r.cv));put("williams",f1(r.wv));
- put("roc",f1(r.rocV)+"%");put("momentum",fmt(r.mom));put("atr",fmt(r.atrV));
- put("obv",obv(c));
- put("bbup",fmt(r.upper));put("bbmid",fmt(r.middle));put("bblow",fmt(r.lower));
- put("support",fmt(r.low));put("resistance",fmt(r.high));put("pivot",fmt(r.pivot));
- put("fib38",fmt(r.fib38));put("fib61",fmt(r.fib61));
- put("candle",r.last.close>r.last.open?"Bullish":r.last.close<r.last.open?"Bearish":"Doji");
- put("pattern",r.pat);put("count",c.length);
- put("bs",r.buy);put("ss",r.sell);
- put("trend",r.e9.at(-1)>r.e21.at(-1)?"Bullish تیزی":"Bearish مندی");
- put("signal",r.signal);$("signal").className="signal "+(r.signal==="BUY"?"buy":r.signal==="SELL"?"sell":"wait");
- put("reason",r.reason);
- put("strength",Math.abs(r.buy-r.sell)>=5?"زیادہ فرق":Math.abs(r.buy-r.sell)>=3?"درمیانہ":"کمزور / WAIT");
- draw(c,r);backtest(c);
-}
-function backtest(c){
- let wins=0,losses=0,counts={1:[0,0],3:[0,0],5:[0,0]};
- for(let i=200;i<c.length-5;i++){
-  const r=analyze(c.slice(0,i+1));
-  if(r.signal==="WAIT")continue;
-  for(const h of [1,3,5]){
-   const entry=c[i].close,exit=c[i+h].close;
-   const good=r.signal==="BUY"?exit>entry:exit<entry;
-   if(exit===entry)continue;
-   if(good)counts[h][0]++;else counts[h][1]++;
-   if(h===1){if(good)wins++;else losses++;}
+
+  data.forEach((x,j)=>{
+    let xx=j*step+step/2;
+    let up=x.close>=x.open;
+    ctx.strokeStyle=up?"#22c55e":"#f43f5e";
+    ctx.fillStyle=ctx.strokeStyle;
+    ctx.beginPath();ctx.moveTo(xx,y(x.high));ctx.lineTo(xx,y(x.low));ctx.stroke();
+    let top=y(Math.max(x.open,x.close));
+    let bottom=y(Math.min(x.open,x.close));
+    ctx.fillRect(xx-body/2,top,body,Math.max(1,bottom-top));
+  });
+
+  function line(arr,color){
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.5;
+    let started=false;
+    arr.slice(offset).forEach((v,j)=>{
+      if(!Number.isFinite(v)){started=false;return;}
+      let xx=j*step+step/2,yy=y(v);
+      if(!started){ctx.moveTo(xx,yy);started=true;}
+      else ctx.lineTo(xx,yy);
+    });
+    ctx.stroke();
   }
- }
- put("btTotal",wins+losses);put("btWin",wins);put("btLoss",losses);
- put("btRate",wins+losses?((wins/(wins+losses))*100).toFixed(1)+"%":"ڈیٹا ناکافی");
- [1,3,5].forEach(h=>{
-  let a=counts[h],n=a[0]+a[1];
-  put("bt"+h,n?(a[0]/n*100).toFixed(1)+"% ("+n+" signals)":"ڈیٹا ناکافی");
- });
+  line(r.e9,"#38bdf8");
+  line(r.e21,"#facc15");
+  line(r.e50,"#c084fc");
+  line(r.s20,"#fb923c");
+  line(r.bb.up,"#64748b");
+  line(r.bb.low,"#64748b");
 }
+
+function runBacktest(){
+  if(candles.length<90){
+    show("btTotal","ڈیٹا ناکافی");
+    show("btWin","—");show("btLoss","—");show("btRate","—");
+    show("btNote","کم از کم 90 کینڈلز درکار ہیں۔");
+    return;
+  }
+  let total=0,wins=0,losses=0;
+  const horizon=3;
+  for(let i=60;i<candles.length-horizon;i++){
+    let hist=candles.slice(0,i+1);
+    let a=analyze(hist);
+    if(a.signal==="WAIT")continue;
+    let start=candles[i].close;
+    let end=candles[i+horizon].close;
+    if(!Number.isFinite(start)||!Number.isFinite(end)||start===end)continue;
+    total++;
+    let correct=(a.signal==="BUY"&&end>start)||(a.signal==="SELL"&&end<start);
+    if(correct)wins++;else losses++;
+  }
+  show("btTotal",total);
+  show("btWin",wins);
+  show("btLoss",losses);
+  show("btRate",total?((wins/total)*100).toFixed(1)+"%":"ڈیٹا ناکافی");
+  show("btNote",total?
+    "یہ صرف تاریخی 3-candle نتیجہ ہے؛ لائیو کامیابی کی ضمانت نہیں۔":
+    "اس ڈیٹا میں قابلِ جانچ BUY یا SELL سگنل نہیں ملا۔");
+}
+
+function parseCandles(data){
+  let values=data.values||data.data||data.candles||data;
+  if(!Array.isArray(values))throw new Error("API format سمجھ نہیں آیا");
+  let result=values.map(x=>({
+    time:x.datetime||x.time||x.date||"",
+    open:Number(x.open),high:Number(x.high),
+    low:Number(x.low),close:Number(x.close)
+  })).filter(x=>
+    [x.open,x.high,x.low,x.close].every(Number.isFinite)&&
+    x.open>0&&x.high>0&&x.low>0&&x.close>0&&
+    x.high>=Math.max(x.open,x.close)&&
+    x.low<=Math.min(x.open,x.close)
+  );
+  result.sort((a,b)=>new Date(a.time)-new Date(b.time));
+  return result;
+}
+
 async function loadData(){
- put("status","مارکیٹ ڈیٹا حاصل ہو رہا ہے...");
- try{
-  const interval=$("tf").value;
-  const url=API+"?symbol=EUR/USD&interval="+encodeURIComponent(interval)+"&outputsize=500";
-  const response=await fetch(url,{cache:"no-store"});
-  if(!response.ok)throw Error("API HTTP "+response.status);
-  const data=await response.json();
-  if(data.error)throw Error(data.error.message||data.error);
-  const values=data.values||data.data||data.candles;
-  if(!Array.isArray(values))throw Error("کینڈل ڈیٹا نہیں ملا");
-  candles=values.map(x=>({
-   time:x.datetime||x.time||x.date,
-   open:Number(x.open),high:Number(x.high),low:Number(x.low),close:Number(x.close),
-   volume:Number(x.volume??x.tickVolume)
-  })).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite)&&
-   x.open>0&&x.high>=x.low&&x.low>0&&x.close>0);
-  candles.sort((a,b)=>new Date(a.time)-new Date(b.time));
-  if(candles.length<30)throw Error("درست کینڈلز کم ہیں: "+candles.length);
-  show(candles);
-  put("status","ڈیٹا موصول ہوا: "+candles.length+" کینڈلز ("+interval+")");
- }catch(e){
-  put("status","ڈیٹا کا مسئلہ: "+e.message);
-  put("price","---");put("signal","WAIT");$("signal").className="signal wait";
-  put("reason","درست ڈیٹا دستیاب نہیں؛ کوئی سگنل جاری نہیں کیا گیا۔");
-  put("chartinfo","چارٹ ڈیٹا دستیاب نہیں");
- }
+  el("status").textContent="ڈیٹا حاصل کیا جا رہا ہے...";
+  try{
+    const interval=el("tf").value;
+    const url=API+"?symbol=EUR/USD&interval="+encodeURIComponent(interval)+"&outputsize=500";
+    const response=await fetch(url,{cache:"no-store"});
+    if(!response.ok)throw new Error("Server response "+response.status);
+    const json=await response.json();
+    const parsed=parseCandles(json);
+    if(parsed.length<80)throw new Error("کافی درست OHLC candles دستیاب نہیں");
+    candles=parsed;
+    latest=analyze(candles);
+    paint(latest,candles);
+    el("status").textContent="ڈیٹا موصول ہوا: "+candles.length+" کینڈلز ("+interval+")";
+    runBacktest();
+  }catch(err){
+    el("status").textContent="ڈیٹا کا مسئلہ: "+err.message;
+    el("price").textContent="—";
+    el("signal").textContent="WAIT";
+    el("signal").className="signal wait";
+    el("reason").textContent="درست ڈیٹا دستیاب نہیں؛ کوئی سگنل جاری نہیں کیا گیا۔";
+    ["ema9","ema21","ema50","ema200","sma20","sma50","rsi","macd","macds","adx","stoch","cci","will","roc","mom","atr","obv","bbup","bbmid","bblow","support","resistance","pivot","fib38","fib61","lastc","total","buyScore","sellScore","trend","pattern","strength"].forEach(id=>show(id,"—"));
+    ["btTotal","btWin","btLoss","btRate"].forEach(id=>show(id,"—"));
+    let ctx=el("chart").getContext("2d");
+    ctx.clearRect(0,0,el("chart").width,el("chart").height);
+  }
 }
-$("tf").addEventListener("change",loadData);
-window.addEventListener("resize",()=>{if(candles.length>=30)show(candles);});
+
+el("tf").addEventListener("change",loadData);
 loadData();
 setInterval(loadData,60000);
 </script>
