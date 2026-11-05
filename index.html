@@ -215,7 +215,73 @@ function draw(c){
 }
 
 /* Next candle outcome test; no future candle is used to create a signal. */
+JavaScript
 function runBacktest(c){
+ const horizons=[1,3,5];
+ const results={};
+
+ for(const h of horizons){
+  let wins=0,losses=0,flats=0;
+  let buyN=0,sellN=0,buyW=0,sellW=0;
+
+  for(let i=55;i+h<c.length;i++){
+   const result=getSignal(c.slice(0,i+1));
+
+   if(result.signal==="WAIT") continue;
+
+   const entry=c[i].close;
+   const exit=c[i+h].close;
+
+   if(result.signal==="BUY"){
+    buyN++;
+    if(exit>entry){wins++;buyW++;}
+    else if(exit<entry) losses++;
+    else flats++;
+   }
+
+   if(result.signal==="SELL"){
+    sellN++;
+    if(exit<entry){wins++;sellW++;}
+    else if(exit>entry) losses++;
+    else flats++;
+   }
+  }
+
+  const tested=buyN+sellN;
+  const rate=wins+losses?100*wins/(wins+losses):NaN;
+  const br=buyN?100*buyW/buyN:NaN;
+  const sr=sellN?100*(sellN-sellW-(sellN-sellW-(sellN-sellW)))/sellN:NaN;
+
+  let sellWins=0;
+  for(let i=55;i+h<c.length;i++){
+   const result=getSignal(c.slice(0,i+1));
+   if(result.signal==="SELL" && c[i+h].close<c[i].close) sellWins++;
+  }
+
+  results[h]={tested,wins,losses,flats,buyN,sellN,rate,br,
+   sr:sellN?100*sellWins/sellN:NaN};
+ }
+
+ const r=results[1];
+
+ $("btTotal").textContent=r.tested;
+ $("btWin").textContent=r.wins;
+ $("btLoss").textContent=r.losses;
+ $("btFlat").textContent=r.flats;
+ $("btBuy").textContent=r.buyN;
+ $("btSell").textContent=r.sellN;
+ $("btRate").textContent=Number.isFinite(r.rate)?r.rate.toFixed(1)+"%":"کافی سگنل نہیں";
+ $("btBuyRate").textContent=Number.isFinite(r.br)?r.br.toFixed(1)+"%":"---";
+ $("btSellRate").textContent=Number.isFinite(r.sr)?r.sr.toFixed(1)+"%":"---";
+
+ $("btNote").style.whiteSpace="pre-line";
+ $("btNote").textContent=
+  "1 کینڈل: "+results[1].rate.toFixed(1)+"%"+
+  "\n3 کینڈلز: "+(Number.isFinite(results[3].rate)?results[3].rate.toFixed(1)+"%":"کافی سگنل نہیں")+
+  "\n5 کینڈلز: "+(Number.isFinite(results[5].rate)?results[5].rate.toFixed(1)+"%":"کافی سگنل نہیں")+
+  "\n\nBUY اور SELL کے نتائج اوپر الگ دیکھیں۔"+
+  "\nنوٹ: یہ تاریخی ٹیسٹ ہے؛ اسپریڈ، فیس اور سلپیج شامل نہیں۔";
+}
  let wins=0,losses=0,flats=0,buyN=0,sellN=0,buyW=0,sellW=0;
  let tested=0;
  for(let i=55;i<c.length-1;i++){
