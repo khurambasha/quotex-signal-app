@@ -5,7 +5,7 @@ HTML
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EUR/USD Signal Pro V4</title>
+<title>EUR/USD Signal Pro V5</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding:14px;background:#0b1220;color:#f1f5f9;font-family:Arial,sans-serif}
@@ -27,7 +27,7 @@ canvas{width:100%;height:220px;background:#101a2b;border-radius:9px}
 </head>
 <body>
 
-<h2>EUR/USD Signal Pro V4</h2>
+<h2>EUR/USD Signal Pro V5</h2>
 
 <div class="card">
  <div class="muted" style="text-align:center">EUR/USD موجودہ قیمت</div>
@@ -79,14 +79,14 @@ canvas{width:100%;height:220px;background:#101a2b;border-radius:9px}
 
 <div class="card">
  <h3 style="color:#38bdf8">Historical Backtesting</h3>
- <div class="muted">پچھلی کینڈلز پر اسی سگنل اصول کی جانچ</div>
+ <div class="muted">1، 3 اور 5 کینڈلز کے بعد تاریخی نتائج</div>
  <div class="row"><span>کل BUY/SELL سگنلز</span><b id="btTotal">---</b></div>
  <div class="row"><span>کامیاب سگنلز</span><b class="good" id="btWin">---</b></div>
  <div class="row"><span>ناکام سگنلز</span><b class="bad" id="btLoss">---</b></div>
  <div class="row"><span>برابر / کوئی تبدیلی نہیں</span><b id="btFlat">---</b></div>
  <div class="row"><span>BUY سگنلز</span><b id="btBuy">---</b></div>
  <div class="row"><span>SELL سگنلز</span><b id="btSell">---</b></div>
- <div class="row"><span>مجموعی کامیابی</span><b class="big" id="btRate">---</b></div>
+ <div class="row"><span>مجموعی کامیابی (1 کینڈل)</span><b class="big" id="btRate">---</b></div>
  <div class="row"><span>BUY کامیابی</span><b id="btBuyRate">---</b></div>
  <div class="row"><span>SELL کامیابی</span><b id="btSellRate">---</b></div>
  <div class="small" id="btNote">Backtest کا انتظار ہے</div>
@@ -95,7 +95,7 @@ canvas{width:100%;height:220px;background:#101a2b;border-radius:9px}
 
 <div class="card small">
  <b>ضروری وضاحت:</b><br>
- Backtest میں ہر سگنل کے بعد آنے والی ایک کینڈل کی سمت دیکھی جاتی ہے۔ یہ صرف ابتدائی تاریخی ٹیسٹ ہے۔ Spread، فیس، slippage اور حقیقی execution شامل نہیں۔ برابر قیمت کو کامیابی نہیں گنا جاتا۔ ماضی کا نتیجہ مستقبل کی ضمانت نہیں۔
+ یہ تاریخی ٹیسٹ ہے، منافع کی ضمانت نہیں۔ Spread، فیس، slippage اور حقیقی execution شامل نہیں۔ Demo پر ٹیسٹ کریں؛ خودکار ٹریڈ نہیں کھولی جاتی۔
 </div>
 
 <script>
@@ -158,7 +158,6 @@ function adxEstimate(c,p=14){
  return a+b?Math.abs(a-b)/(a+b)*100:0;
 }
 
-/* Signal calculation: only candles available at this point are used. */
 function getSignal(c){
  if(c.length<55)return {signal:"WAIT",buy:0,sell:0,reason:"کافی ڈیٹا دستیاب نہیں"};
  let a=c.map(x=>x.close);
@@ -214,8 +213,6 @@ function draw(c){
  $("chartinfo").textContent="آخری "+d.length+" کینڈلز";
 }
 
-/* Next candle outcome test; no future candle is used to create a signal. */
-JavaScript
 function runBacktest(c){
  const horizons=[1,3,5];
  const results={};
@@ -225,98 +222,51 @@ function runBacktest(c){
   let buyN=0,sellN=0,buyW=0,sellW=0;
 
   for(let i=55;i+h<c.length;i++){
-   const result=getSignal(c.slice(0,i+1));
-
-   if(result.signal==="WAIT") continue;
+   const r=getSignal(c.slice(0,i+1));
+   if(r.signal==="WAIT")continue;
 
    const entry=c[i].close;
    const exit=c[i+h].close;
 
-   if(result.signal==="BUY"){
+   if(r.signal==="BUY"){
     buyN++;
     if(exit>entry){wins++;buyW++;}
-    else if(exit<entry) losses++;
+    else if(exit<entry)losses++;
     else flats++;
-   }
-
-   if(result.signal==="SELL"){
+   }else if(r.signal==="SELL"){
     sellN++;
     if(exit<entry){wins++;sellW++;}
-    else if(exit>entry) losses++;
+    else if(exit>entry)losses++;
     else flats++;
    }
   }
 
-  const tested=buyN+sellN;
   const rate=wins+losses?100*wins/(wins+losses):NaN;
   const br=buyN?100*buyW/buyN:NaN;
-  const sr=sellN?100*(sellN-sellW-(sellN-sellW-(sellN-sellW)))/sellN:NaN;
-
-  let sellWins=0;
-  for(let i=55;i+h<c.length;i++){
-   const result=getSignal(c.slice(0,i+1));
-   if(result.signal==="SELL" && c[i+h].close<c[i].close) sellWins++;
-  }
-
-  results[h]={tested,wins,losses,flats,buyN,sellN,rate,br,
-   sr:sellN?100*sellWins/sellN:NaN};
+  const sr=sellN?100*sellW/sellN:NaN;
+  results[h]={wins,losses,flats,buyN,sellN,rate,br,sr};
  }
 
  const r=results[1];
+ const pct=n=>Number.isFinite(n)?n.toFixed(1)+"%":"کافی سگنل نہیں";
 
- $("btTotal").textContent=r.tested;
+ $("btTotal").textContent=r.buyN+r.sellN;
  $("btWin").textContent=r.wins;
  $("btLoss").textContent=r.losses;
  $("btFlat").textContent=r.flats;
  $("btBuy").textContent=r.buyN;
  $("btSell").textContent=r.sellN;
- $("btRate").textContent=Number.isFinite(r.rate)?r.rate.toFixed(1)+"%":"کافی سگنل نہیں";
- $("btBuyRate").textContent=Number.isFinite(r.br)?r.br.toFixed(1)+"%":"---";
- $("btSellRate").textContent=Number.isFinite(r.sr)?r.sr.toFixed(1)+"%":"---";
+ $("btRate").textContent=pct(r.rate);
+ $("btBuyRate").textContent=pct(r.br);
+ $("btSellRate").textContent=pct(r.sr);
 
  $("btNote").style.whiteSpace="pre-line";
  $("btNote").textContent=
-  "1 کینڈل: "+results[1].rate.toFixed(1)+"%"+
-  "\n3 کینڈلز: "+(Number.isFinite(results[3].rate)?results[3].rate.toFixed(1)+"%":"کافی سگنل نہیں")+
-  "\n5 کینڈلز: "+(Number.isFinite(results[5].rate)?results[5].rate.toFixed(1)+"%":"کافی سگنل نہیں")+
-  "\n\nBUY اور SELL کے نتائج اوپر الگ دیکھیں۔"+
-  "\nنوٹ: یہ تاریخی ٹیسٹ ہے؛ اسپریڈ، فیس اور سلپیج شامل نہیں۔";
-}
- let wins=0,losses=0,flats=0,buyN=0,sellN=0,buyW=0,sellW=0;
- let tested=0;
- for(let i=55;i<c.length-1;i++){
-  let history=c.slice(0,i+1);
-  let result=getSignal(history);
-  if(result.signal==="WAIT")continue;
-  let entry=c[i].close;
-  let next=c[i+1].close;
-  tested++;
-  if(result.signal==="BUY"){
-   buyN++;
-   if(next>entry){wins++;buyW++;}
-   else if(next<entry)losses++;
-   else flats++;
-  }else if(result.signal==="SELL"){
-   sellN++;
-   if(next<entry){wins++;sellW++;}
-   else if(next>entry)losses++;
-   else flats++;
-  }
- }
- let rate=wins+losses?100*wins/(wins+losses):NaN;
- let br=buyN?100*buyW/buyN:NaN;
- let sr=sellN?100*sellW/sellN:NaN;
- $("btTotal").textContent=tested;
- $("btWin").textContent=wins;
- $("btLoss").textContent=losses;
- $("btFlat").textContent=flats;
- $("btBuy").textContent=buyN;
- $("btSell").textContent=sellN;
- $("btRate").textContent=Number.isFinite(rate)?rate.toFixed(1)+"%":"کافی سگنل نہیں";
- $("btBuyRate").textContent=Number.isFinite(br)?br.toFixed(1)+"%":"---";
- $("btSellRate").textContent=Number.isFinite(sr)?sr.toFixed(1)+"%":"---";
- $("btNote").textContent="جانچے گئے سگنلز: "+tested+
-  "۔ ٹیسٹ میں ہر سگنل کے بعد صرف اگلی کینڈل دیکھی گئی۔";
+  "1 کینڈل کامیابی: "+pct(results[1].rate)+
+  "\n3 کینڈلز کامیابی: "+pct(results[3].rate)+
+  "\n5 کینڈلز کامیابی: "+pct(results[5].rate)+
+  "\n\nاوپر کے اعداد 1 کینڈل کے نتائج ہیں۔"+
+  "\nیہ تاریخی ٹیسٹ ہے؛ اسپریڈ، فیس اور سلپیج شامل نہیں۔";
 }
 
 function showAnalysis(c){
@@ -366,13 +316,16 @@ async function loadData(){
   if(data.error)throw new Error(data.error.message||data.error);
   let values=data.values||data.data||data.candles;
   if(!Array.isArray(values))throw new Error("کینڈل ڈیٹا نہیں ملا");
+
   let candles=values.map(x=>({
    time:x.datetime||x.time||x.date,
    open:Number(x.open),high:Number(x.high),
    low:Number(x.low),close:Number(x.close)
   })).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+
   candles.sort((a,b)=>new Date(a.time)-new Date(b.time));
-  if(candles.length<60)throw new Error("Backtest کے لیے کم از کم 60 کینڈلز درکار ہیں");
+  if(candles.length<60)throw new Error("کم از کم 60 کینڈلز درکار ہیں");
+
   showAnalysis(candles);
   runBacktest(candles);
   $("status").textContent="ڈیٹا موصول ہوا — EUR/USD ("+interval+")";
