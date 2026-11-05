@@ -215,6 +215,7 @@ function draw(c){
 }
 
 /* Next candle outcome test; no future candle is used to create a signal. */
+function runBacktest(c){
  let wins=0,losses=0,flats=0,buyN=0,sellN=0,buyW=0,sellW=0;
  let tested=0;
  for(let i=55;i<c.length-1;i++){
