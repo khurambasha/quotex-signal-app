@@ -5,7 +5,7 @@ HTML
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EUR/USD Signal Pro V6</title>
+<title>EUR/USD Signal Pro V7</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding:13px;background:#0b1220;color:#f1f5f9;font-family:Arial,sans-serif}
@@ -13,7 +13,7 @@ h2{text-align:center;color:#38bdf8}
 h3{color:#38bdf8;margin-top:5px}
 .card{background:#172338;border:1px solid #334155;border-radius:13px;padding:15px;margin:12px 0}
 .price{text-align:center;font-size:32px;font-weight:bold;color:#38bdf8;padding:10px}
-.muted{color:#a5b4c7;font-size:13px;line-height:1.6}
+.muted{color:#a5b4c7;font-size:13px;line-height:1.7}
 select,button{width:100%;padding:13px;border:0;border-radius:9px;font-size:16px;margin-top:9px}
 select{background:#26364f;color:white}
 button{background:#0284c7;color:white;font-weight:bold}
@@ -22,7 +22,7 @@ button{background:#0284c7;color:white;font-weight:bold}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
 .ind{background:#0e1a2c;border:1px solid #334155;border-radius:9px;padding:12px;min-width:0}
 .ind small{display:block;color:#a5b4c7;margin-bottom:8px}
-.ind strong{font-size:17px;overflow-wrap:anywhere}
+.ind strong{font-size:16px;overflow-wrap:anywhere}
 canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9px}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin:12px 0}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
@@ -35,7 +35,7 @@ canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9p
 </head>
 <body>
 
-<h2>EUR/USD Signal Pro V6</h2>
+<h2>EUR/USD Signal Pro V7</h2>
 
 <div class="card">
  <div class="muted" style="text-align:center">EUR/USD موجودہ قیمت</div>
@@ -83,7 +83,7 @@ canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9p
   <div class="ind"><small>EMA 200</small><strong id="e200">---</strong></div>
   <div class="ind"><small>RSI 14</small><strong id="rsi">---</strong></div>
   <div class="ind"><small>MACD</small><strong id="macd">---</strong></div>
-  <div class="ind"><small>ADX Estimation</small><strong id="adx">---</strong></div>
+  <div class="ind"><small>ADX Estimate</small><strong id="adx">---</strong></div>
   <div class="ind"><small>Stochastic</small><strong id="stoch">---</strong></div>
   <div class="ind"><small>ATR</small><strong id="atr">---</strong></div>
   <div class="ind"><small>Bollinger Bands</small><strong id="bb">---</strong></div>
@@ -108,8 +108,8 @@ canvas{display:block;width:100%;height:280px;background:#0e1a2c;border-radius:9p
 </div>
 
 <div class="card small">
- <b>Important:</b><br>
- یہ تعلیمی اور تاریخی تجزیہ ہے، منافع یا کامیابی کی ضمانت نہیں۔ Spread، fees اور slippage نتائج بدل سکتے ہیں۔ پہلے Demo پر ٹیسٹ کریں۔ یہ ایپ خودکار ٹریڈ نہیں کھولتی۔
+ <b>اہم وضاحت:</b><br>
+ یہ تعلیمی تجزیہ ہے، منافع یا کامیابی کی ضمانت نہیں۔ تاریخی بیک ٹیسٹ مستقبل کی کامیابی ثابت نہیں کرتا۔ Spread، fees اور slippage نتائج بدل سکتے ہیں۔ پہلے Demo پر ٹیسٹ کریں۔ یہ ایپ خودکار ٹریڈ نہیں کھولتی۔
 </div>
 
 <script>
@@ -118,7 +118,10 @@ const $=id=>document.getElementById(id);
 let candles=[];
 
 function fmt(x){
- return Number.isFinite(x)?x.toFixed(5):"---";
+ return Number.isFinite(x)?x.toFixed(5):"مزید ڈیٹا درکار";
+}
+function fmt1(x){
+ return Number.isFinite(x)?x.toFixed(1):"مزید ڈیٹا درکار";
 }
 
 function emaSeries(a,p){
@@ -147,17 +150,21 @@ function rsi(a,p=14){
 }
 
 function macd(a){
- return emaSeries(a,12).at(-1)-emaSeries(a,26).at(-1);
+ let fast=emaSeries(a,12).at(-1);
+ let slow=emaSeries(a,26).at(-1);
+ return Number.isFinite(fast)&&Number.isFinite(slow)?fast-slow:NaN;
 }
 
 function stochastic(c){
  let x=c.slice(-14);
+ if(x.length<14)return NaN;
  let hi=Math.max(...x.map(v=>v.high));
  let lo=Math.min(...x.map(v=>v.low));
  return hi===lo?50:(x.at(-1).close-lo)/(hi-lo)*100;
 }
 
 function atr(c){
+ if(c.length<2)return NaN;
  let tr=[];
  for(let i=1;i<c.length;i++){
   let x=c[i],p=c[i-1];
@@ -166,10 +173,11 @@ function atr(c){
    Math.abs(x.low-p.close)));
  }
  let a=tr.slice(-14);
- return a.reduce((x,y)=>x+y,0)/a.length;
+ return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN;
 }
 
 function adx(c){
+ if(c.length<15)return NaN;
  let plus=0,minus=0,tr=0;
  for(let i=c.length-14;i<c.length;i++){
   let x=c[i],p=c[i-1];
@@ -197,28 +205,44 @@ function analysis(c){
 
  if(e9.at(-1)>e21.at(-1))buy+=2;
  else sell+=2;
- if(e21.at(-1)>e50.at(-1))buy++;
- else sell++;
- if(m>0)buy+=2;else sell+=2;
- if(rv>50&&rv<68)buy++;
- if(rv<50&&rv>32)sell++;
+
+ if(Number.isFinite(e50.at(-1))){
+  if(e21.at(-1)>e50.at(-1))buy++;
+  else sell++;
+ }
+
+ if(Number.isFinite(m)){
+  if(m>0)buy+=2;
+  else sell+=2;
+ }
+
+ if(Number.isFinite(rv)){
+  if(rv>50&&rv<68)buy++;
+  if(rv<50&&rv>32)sell++;
+ }
+
  if(last.close>last.open)buy++;
  else if(last.close<last.open)sell++;
- if(sv>50&&sv<80)buy++;
- if(sv<50&&sv>20)sell++;
- if(av>=20){
+
+ if(Number.isFinite(sv)){
+  if(sv>50&&sv<80)buy++;
+  if(sv<50&&sv>20)sell++;
+ }
+
+ if(Number.isFinite(av)&&av>=20){
   if(buy>sell)buy++;
   else if(sell>buy)sell++;
  }
 
  let signal="WAIT";
- let reason="اشارے مکمل طور پر متفق نہیں۔ انتظار بہتر ہے۔";
+ let reason="اشارے مکمل طور پر متفق نہیں؛ انتظار بہتر ہے۔";
+
  if(buy>=7&&buy-sell>=3){
   signal="BUY";
-  reason="تیزی کے کئی اشارے مل رہے ہیں۔";
+  reason="تیزی کے کئی اشارے مل رہے ہیں، پھر بھی Demo پر تصدیق کریں۔";
  }else if(sell>=7&&sell-buy>=3){
   signal="SELL";
-  reason="مندی کے کئی اشارے مل رہے ہیں۔";
+  reason="مندی کے کئی اشارے مل رہے ہیں، پھر بھی Demo پر تصدیق کریں۔";
  }
 
  let recent=c.slice(-20);
@@ -237,13 +261,13 @@ function analysis(c){
 
 function drawChart(c,r){
  let canvas=$("chart");
- let width=canvas.clientWidth;
+ let width=Math.max(canvas.clientWidth,280);
  let height=280;
  let dpr=window.devicePixelRatio||1;
  canvas.width=width*dpr;
  canvas.height=height*dpr;
  let ctx=canvas.getContext("2d");
- ctx.scale(dpr,dpr);
+ ctx.setTransform(dpr,0,0,dpr,0,0);
  ctx.clearRect(0,0,width,height);
 
  let d=c.slice(-60);
@@ -284,7 +308,6 @@ function drawChart(c,r){
   }
   ctx.stroke();
  }
-
  line(r.e9,"#38bdf8");
  line(r.e21,"#facc15");
  line(r.e50,"#c084fc");
@@ -298,15 +321,15 @@ function show(c){
  $("e21").textContent=fmt(r.e21.at(-1));
  $("e50").textContent=fmt(r.e50.at(-1));
  $("e200").textContent=fmt(r.e200.at(-1));
- $("rsi").textContent=r.rv.toFixed(1);
+ $("rsi").textContent=fmt1(r.rv);
  $("macd").textContent=fmt(r.m);
- $("adx").textContent=r.av.toFixed(1);
- $("stoch").textContent=r.sv.toFixed(1);
+ $("adx").textContent=fmt1(r.av);
+ $("stoch").textContent=fmt1(r.sv);
  $("atr").textContent=fmt(r.atr);
  $("bb").textContent=fmt(r.lower)+" / "+fmt(r.upper);
  $("support").textContent=fmt(r.support);
  $("resistance").textContent=fmt(r.resistance);
- $("candle").textContent=r.last.close>=r.last.open?"Bullish":"Bearish";
+ $("candle").textContent=r.last.close>=r.last.open?"Bullish تیزی":"Bearish مندی";
  $("count").textContent=c.length;
  $("bs").textContent=r.buy;
  $("ss").textContent=r.sell;
@@ -322,7 +345,7 @@ function backtest(c){
  let results={};
  for(let h of [1,3,5]){
   let wins=0,losses=0,buyN=0,sellN=0;
-  for(let i=205;i+h<c.length;i++){
+  for(let i=30;i+h<c.length;i++){
    let old=analysis(c.slice(0,i+1));
    if(old.signal==="WAIT")continue;
    let entry=c[i].close,exit=c[i+h].close;
@@ -357,6 +380,7 @@ async function loadData(){
   if(!response.ok)throw new Error("API HTTP "+response.status);
   let data=await response.json();
   if(data.error)throw new Error(data.error.message||data.error);
+
   let values=data.values||data.data||data.candles;
   if(!Array.isArray(values))throw new Error("کینڈل ڈیٹا نہیں ملا");
 
@@ -364,30 +388,35 @@ async function loadData(){
    time:x.datetime||x.time||x.date,
    open:Number(x.open),high:Number(x.high),
    low:Number(x.low),close:Number(x.close)
-  })).filter(x=>[x.open,x.high,x.low,x.close].every(Number.isFinite));
+  })).filter(x=>
+   [x.open,x.high,x.low,x.close].every(Number.isFinite)&&
+   x.open>0&&x.high>0&&x.low>0&&x.close>0&&x.high>=x.low
+  );
 
   candles.sort((a,b)=>new Date(a.time)-new Date(b.time));
-  if(candles.length<205)throw new Error("EMA 200 کے لیے کم از کم 205 کینڈلز درکار ہیں");
+
+  if(candles.length<30){
+   throw new Error("صرف "+candles.length+" درست کینڈلز ملیں؛ کم از کم 30 درکار ہیں۔");
+  }
 
   show(candles);
-  $("status").textContent="ڈیٹا موصول ہوا — EUR/USD ("+interval+")";
+  $("status").textContent="ڈیٹا موصول ہوا — "+candles.length+" کینڈلز ("+interval+")۔ EMA 200 کے لیے 200 کینڈلز درکار ہیں۔";
  }catch(e){
   $("status").textContent="ڈیٹا کا مسئلہ: "+e.message;
   $("price").textContent="---";
   $("signal").textContent="WAIT";
-  $("reason").textContent="ڈیٹا دستیاب نہیں؛ کوئی سگنل جاری نہیں کیا گیا۔";
+  $("signal").className="signal wait";
+  $("reason").textContent="درست ڈیٹا دستیاب نہیں؛ کوئی سگنل جاری نہیں کیا گیا۔";
   $("chartinfo").textContent="چارٹ ڈیٹا دستیاب نہیں";
-  $("btTotal").textContent="---";
-  $("btWin").textContent="---";
-  $("btLoss").textContent="---";
-  $("btBuy").textContent="---";
-  $("btSell").textContent="---";
+  ["e9","e21","e50","e200","rsi","macd","adx","stoch","atr","bb","support","resistance","count","bs","ss","trend","candle","btTotal","btWin","btLoss","btBuy","btSell","bt1","bt3","bt5"].forEach(id=>$(id).textContent="---");
+  let ctx=$("chart").getContext("2d");
+  ctx.clearRect(0,0,$("chart").width,$("chart").height);
  }
 }
 
 $("tf").addEventListener("change",loadData);
 window.addEventListener("resize",()=>{
- if(candles.length>=205)show(candles);
+ if(candles.length>=30)show(candles);
 });
 loadData();
 setInterval(loadData,60000);
